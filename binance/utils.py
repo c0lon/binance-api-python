@@ -4,7 +4,7 @@ from pprint import pprint
 
 
 class GetLoggerMixin:
-    ''' Adds a `_get_logger()` classmethod that returns the correctly
+    ''' Adds a `_logger()` classmethod that returns the correctly
     named logger. The child class must have a `__loggername__` class variable.
     '''
 

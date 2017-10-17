@@ -5,8 +5,7 @@ import sys
 
 import yaml
 
-''' Import anything you want available from the top-level module here.
-'''
+from .binance import BinanceClient
 
 
 here = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -64,8 +63,8 @@ def configure_app(config_uri='', arg_parser=None):
         config['logging']['root']['level'] = args.pop('log_level')
     logging.config.dictConfig(config['logging'])
 
-    config['main'] = config['main'] or {}
-    config['main']['debug'] = args['debug']
+    config['main'] = config.get('main', {})
+    config['main']['debug'] = args.get('debug', False)
 
     return config['main'], config
 

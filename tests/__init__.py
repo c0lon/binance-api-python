@@ -14,19 +14,11 @@ here = os.path.dirname(os.path.realpath(__file__))
 TEST_DIR = os.path.join(here, 'test')
 
 root = os.path.dirname(here)
-config_uri = os.path.join(here, 'development.ini')
+config_uri = os.path.join(root, 'development.yaml')
 SETTINGS, GLOBAL_CONFIG = binance.configure_app(config_uri=config_uri)
 
-
-def setup_module(module):
-    # reset test dir
-    if os.path.isdir(TEST_DIR): shutil.rmtree(TEST_DIR)
-    ensure_dir(TEST_DIR)
-
-
-def teardown_module(module):
-    # delete test dir
-    shutil.rmtree(TEST_DIR)
+APIKEY = SETTINGS['key']
+APISECRET = SETTINGS['secret']
 
 
 def random_boolean():
