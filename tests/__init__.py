@@ -17,8 +17,8 @@ root = os.path.dirname(here)
 config_uri = os.path.join(root, 'development.yaml')
 SETTINGS, GLOBAL_CONFIG = binance.configure_app(config_uri=config_uri)
 
-APIKEY = SETTINGS['key']
-APISECRET = SETTINGS['secret']
+APIKEY = SETTINGS['apikey']
+APISECRET = SETTINGS['apisecret']
 
 
 def random_boolean():
