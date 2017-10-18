@@ -5,7 +5,11 @@ import sys
 
 import yaml
 
-from .binance import BinanceClient
+from .client import BinanceClient
+from .websocket import (
+        watch_depth,
+        watch_klines,
+        )
 
 
 here = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))

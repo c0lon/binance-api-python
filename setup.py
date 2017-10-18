@@ -16,6 +16,7 @@ with open(os.path.join(here, 'VERSION')) as f:
 dependency_links = [
         ]
 install_requires = [
+        'aiohttp',
         'pyyaml',
         'requests',
         'websockets',

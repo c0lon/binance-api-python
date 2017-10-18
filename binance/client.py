@@ -6,6 +6,7 @@ from urllib.parse import (
     urljoin,
     )
 
+import aiohttp
 import requests
 import websockets
 
@@ -14,9 +15,6 @@ from .utils import GetLoggerMixin
 
 API_BASE_URL = 'https://www.binance.com/api/'
 
-DEPTH_WEBSOCKET_URL = 'wss://stream.binance.com:9443/ws/{symbol}@depth'
-KLINE_WEBSOCKET_URL = 'wss://stream.binance.com:9443/ws/{symbol}@kline'
-
 
 class BinanceClient(GetLoggerMixin):
 
@@ -24,9 +22,8 @@ class BinanceClient(GetLoggerMixin):
         self.api_key = api_key
         self.api_secret = api_secret
 
-    def _make_request(self, path, verb='get', params=None, signed=False):
+    def _prepare_request(self, path, verb, params, signed):
         params = params or {}
-        verb = verb.lower()
 
         if signed:
             url = self._sign_request(path, params)
@@ -35,6 +32,12 @@ class BinanceClient(GetLoggerMixin):
         else:
             url = '{}/v1/{}'.format(API_BASE_URL, path)
 
+        return url
+
+    def _make_request(self, path, verb='get', params=None, signed=False):
+        verb = verb.lower()
+
+        url = self._prepare_request(path, verb, params, signed)
         response = getattr(requests, verb)(url, headers={
             'X-MBX-APIKEY' : self.api_key
         })
@@ -42,6 +45,19 @@ class BinanceClient(GetLoggerMixin):
             return response.json()
         
         raise response.raise_for_status()
+
+    async def _make_request_async(self, path, verb='get', params=None, signed=False):
+        verb = verb.lower()
+
+        url = self._prepare_request(path, verb, params, signed)
+        with aiohttp.ClientSession() as client:
+            response = await getattr(client, verb)(url, headers={
+                'X-MBX-APIKEY' : self.api_key
+            })
+            if response.reason == 'OK':
+                return await response.json(content_type=None)
+
+            response.raise_for_status()
 
     def _get_sorted_query_string(self, params):
         sorted_parameters = []
@@ -67,24 +83,22 @@ class BinanceClient(GetLoggerMixin):
                 url, query_string, signature.hexdigest())
 
     def get_ticker(self, symbol=''):
-        response = self._make_request('ticker/allPrices')
-        ticker = {}
-        for symbol_ in response:
-            ticker[symbol_['symbol']] = float(symbol_['price'])
+        ticker = self._make_request('ticker/allPrices')
 
         if symbol:
-            if symbol not in ticker:
+            for _symbol in ticker:
+                if _symbol['symbol'] == symbol:
+                    return _symbol
+            else:
                 raise ValueError('invalid symbol: {}'.format(symbol))
-            return ticker[symbol]
 
         return ticker
 
     def get_depth(self, symbol):
-        response = self._make_request('depth', params={'symbol' : symbol})
-        return {
-            'bids' : response['bids'],
-            'asks' : response['asks']
-        }
+        return self._make_request('depth', params={'symbol' : symbol})
+
+    async def get_depth_async(self, symbol):
+        return await self._make_request_async('depth', params={'symbol': symbol})
 
     def get_account_info(self):
         return self._make_request('account', signed=True)
