@@ -20,7 +20,7 @@ SYMBOLS = [
 ]
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_ticker_all():
     client = BinanceClient(APIKEY, APISECRET)
     ticker_data = client.get_ticker()
@@ -29,7 +29,7 @@ def test_get_ticker_all():
     assert isinstance(ticker_data[random.choice(SYMBOLS)], float)
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_ticker():
     client = BinanceClient(APIKEY, APISECRET)
     symbol = random.choice(SYMBOLS)
@@ -38,7 +38,7 @@ def test_get_ticker():
     assert isinstance(price, float)
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_depth_data():
     client = BinanceClient(APIKEY, APISECRET)
     symbol = random.choice(SYMBOLS)
@@ -55,4 +55,3 @@ def test_get_account_info():
     account_info = client.get_account_info()
 
     assert isinstance(account_info, dict)
-

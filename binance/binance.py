@@ -12,7 +12,7 @@ import websockets
 from .utils import GetLoggerMixin
 
 
-API_BASE_URL = 'https://www.binance.com/api/v1/'
+API_BASE_URL = 'https://www.binance.com/api/'
 
 DEPTH_WEBSOCKET_URL = 'wss://stream.binance.com:9443/ws/{symbol}@depth'
 KLINE_WEBSOCKET_URL = 'wss://stream.binance.com:9443/ws/{symbol}@kline'
@@ -25,14 +25,15 @@ class BinanceClient(GetLoggerMixin):
         self.api_secret = api_secret
 
     def _make_request(self, path, verb='get', params=None, signed=False):
-        url = urljoin(API_BASE_URL, path)
         params = params or {}
         verb = verb.lower()
 
         if signed:
-            url = self._sign_request(url, params)
+            url = self._sign_request(path, params)
         elif params:
-            url = '{}?{}'.format(url, self._get_sorted_query_string(params))
+            url = '{}/v1/{}?{}'.format(API_BASE_URL, path, self._get_sorted_query_string(params))
+        else:
+            url = '{}/v1/{}'.format(API_BASE_URL, path)
 
         response = getattr(requests, verb)(url, headers={
             'X-MBX-APIKEY' : self.api_key
@@ -40,9 +41,7 @@ class BinanceClient(GetLoggerMixin):
         if response.ok:
             return response.json()
         
-        print(response.url)
-        print(response.json())
-        #raise response.raise_for_status()
+        raise response.raise_for_status()
 
     def _get_sorted_query_string(self, params):
         sorted_parameters = []
@@ -52,7 +51,9 @@ class BinanceClient(GetLoggerMixin):
 
         return '&'.join(sorted_parameters)
 
-    def _sign_request(self, url, params):
+    def _sign_request(self, path, params):
+        url = '{}/v3/{}'.format(API_BASE_URL, path)
+
         params['timestamp'] = int(round(time.time() * 1000.0))
         params['recvWindow'] = 6000
         query_string = self._get_sorted_query_string(params)
@@ -86,5 +87,4 @@ class BinanceClient(GetLoggerMixin):
         }
 
     def get_account_info(self):
-        response = self._make_request('account', signed=True)
-        #import pdb; pdb.set_trace()
+        return self._make_request('account', signed=True)
