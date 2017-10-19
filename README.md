@@ -5,10 +5,10 @@
 Build API clients with the following features:
 * Follow latest api documentation
 X Getting latest price of a symbol
-* Getting depth of a symbol or maintain a depth cache locally
-* Placing a LIMIT order
-* Placing a MARKET order
-* Checking an order’s status
-* Cancelling an order
-* Getting list of open orders
-* Getting list of current position
+X Getting depth of a symbol or maintain a depth cache locally
+X Placing a LIMIT order
+X Placing a MARKET order
+X Checking an order’s status
+X Cancelling an order
+X Getting list of open orders
+X Getting list of current position
