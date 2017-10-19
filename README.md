@@ -1,6 +1,6 @@
 # binance
 
-[Binance API](https://www.binance.com/restapipub.html)
+Client for the [Binance API](https://www.binance.com/restapipub.html).
 
 ## Installation
 ```
