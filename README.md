@@ -1,5 +1,7 @@
 # binance
 
+[Binance API](https://www.binance.com/restapipub.html)
+
 ## Installation
 ```
 git clone https://github.com/c0lon/binance.git
@@ -7,7 +9,7 @@ cd binance
 python setup.py install
 ```
 
-Requires python 3.5 or greater
+Requires python 3.5 or greater.
 
 ## Goals
 
