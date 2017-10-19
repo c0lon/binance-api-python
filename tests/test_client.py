@@ -1,4 +1,4 @@
-""" Test suite for the Binance Client API Wrapper.
+""" Test suite for the Binance API Client.
 """
 
 

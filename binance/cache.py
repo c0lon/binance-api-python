@@ -1,4 +1,4 @@
-""" DepthCache helper class for the BinanceClient class.
+""" DepthCache helper class for the Binance API Client.
 """
 
 

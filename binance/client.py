@@ -1,4 +1,4 @@
-""" Binance Client API Wrapper.
+""" Binance API Client.
 """
 
 
