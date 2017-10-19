@@ -250,26 +250,26 @@ class BinanceClient(GetLoggerMixin):
         self._logger('place_market_buy').info(f'{symbol}: {quantity}')
 
         params = {
-                'symbol' : symbol,
-                'side' : Sides.BUY,
-                'type' : OrderTypes.MARKET,
-                'quantity' : quantity,
-                'recvWindow' : 60000
-                }
+            'symbol' : symbol,
+            'side' : Sides.BUY,
+            'type' : OrderTypes.MARKET,
+            'quantity' : quantity,
+            'recvWindow' : 60000
+        }
         return self._make_request(Endpoints.ORDER, verb='post',
-                signed=True, params=params)
+            signed=True, params=params)
 
 
     def place_market_sell(self, symbol, quantity, **kwargs):
         self._logger('place_market_sell').info(f'{symbol}: {quantity}')
 
         params = {
-                'symbol' : symbol,
-                'side' : Sides.SELL,
-                'type' : OrderTypes.MARKET,
-                'quantity' : quantity,
-                'recvWindow' : 60000
-                }
+            'symbol' : symbol,
+            'side' : Sides.SELL,
+            'type' : OrderTypes.MARKET,
+            'quantity' : quantity,
+            'recvWindow' : 60000
+        }
         return self._make_request(Endpoints.ORDER, verb='post',
                 signed=True, params=params)
 
@@ -278,14 +278,14 @@ class BinanceClient(GetLoggerMixin):
         self._logger('place_limit_buy').info(f'{symbol}: {quantity} @ {price}')
 
         params = {
-                'symbol' : symbol,
-                'side' : Sides.BUY,
-                'type' : OrderTypes.LIMIT,
-                'timeInForce' : kwargs.get('time_in_force', TimeInForce.GTC),
-                'quantity' : quantity,
-                'price' : price,
-                'recvWindow' : 60000
-                }
+            'symbol' : symbol,
+            'side' : Sides.BUY,
+            'type' : OrderTypes.LIMIT,
+            'timeInForce' : kwargs.get('time_in_force', TimeInForce.GTC),
+            'quantity' : quantity,
+            'price' : price,
+            'recvWindow' : 60000
+        }
         if 'stop_price' in kwargs:
             params['stopPrice'] = kwargs['stop_price']
 
@@ -297,14 +297,14 @@ class BinanceClient(GetLoggerMixin):
         self._logger('place_limit_sell').info(f'{symbol}: {quantity} @ {price}')
 
         params = {
-                'symbol' : symbol,
-                'side' : Sides.SELL,
-                'type' : OrderTypes.LIMIT,
-                'timeInForce' : kwargs.get('time_in_force', TimeInForce.GTC),
-                'quantity' : quantity,
-                'price' : price,
-                'recvWindow' : 60000
-                }
+            'symbol' : symbol,
+            'side' : Sides.SELL,
+            'type' : OrderTypes.LIMIT,
+            'timeInForce' : kwargs.get('time_in_force', TimeInForce.GTC),
+            'quantity' : quantity,
+            'price' : price,
+            'recvWindow' : 60000
+        }
         if 'stop_price' in kwargs:
             params['stopPrice'] = kwargs['stop_price']
 
