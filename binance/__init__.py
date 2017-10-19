@@ -5,7 +5,12 @@ import sys
 
 import yaml
 
-from .client import BinanceClient
+from .client import (
+    BinanceClient,
+    OrderTypes,
+    Sides,
+    TimeInForce,
+    )
 
 
 here = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))

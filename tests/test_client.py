@@ -2,7 +2,10 @@ import asyncio
 import pytest
 import random
 
-from binance import BinanceClient
+from binance import (
+    BinanceClient,
+    Sides,
+    )
 
 from . import (
     APIKEY,
@@ -20,7 +23,7 @@ SYMBOLS = [
 ]
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_ticker_all():
     client = BinanceClient(APIKEY, APISECRET)
     ticker = client.get_ticker()
@@ -37,7 +40,7 @@ def test_get_ticker_all():
         assert symbol in symbols
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_ticker():
     client = BinanceClient(APIKEY, APISECRET)
     symbol = random.choice(SYMBOLS)
@@ -48,7 +51,7 @@ def test_get_ticker():
     assert isinstance(ticker['price'], str)
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_ticker_invalid():
     client = BinanceClient(APIKEY, APISECRET)
     symbol = 'DOGE'
@@ -67,7 +70,7 @@ def assert_depth(depth):
     assert isinstance(depth['asks'], list)
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_depth_data():
     client = BinanceClient(APIKEY, APISECRET)
     symbol = random.choice(SYMBOLS)
@@ -76,7 +79,7 @@ def test_get_depth_data():
     assert_depth(depth)
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_depth_data_async():
     client = BinanceClient(APIKEY, APISECRET)
     
@@ -89,12 +92,21 @@ def test_get_depth_data_async():
     loop.run_until_complete(get_depth())
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_account_info():
     client = BinanceClient(APIKEY, APISECRET)
     account_info = client.get_account_info()
 
     assert isinstance(account_info, dict)
+
+
+#@pytest.mark.skip
+def test_get_trade_info():
+    client = BinanceClient(APIKEY, APISECRET)
+    symbol = random.choice(SYMBOLS)
+    trade_info = client.get_trade_info(symbol)
+
+    assert isinstance(trade_info, list)
 
 
 #@pytest.mark.skip
@@ -104,3 +116,57 @@ def test_get_open_orders():
     open_orders = client.get_open_orders(symbol)
 
     assert isinstance(open_orders, list)
+
+
+#@pytest.mark.skip
+def test_place_market_buy():
+    client = BinanceClient(APIKEY, APISECRET)
+    symbol = SYMBOLS[0]
+    quantity = 0.5
+    price = 0.00103882
+    response = client.place_market_buy(symbol, quantity, price)
+
+    assert isinstance(response, dict)
+
+
+#@pytest.mark.skip
+def test_place_market_sell():
+    client = BinanceClient(APIKEY, APISECRET)
+    symbol = SYMBOLS[0]
+    quantity = 0.5
+    price = 0.001
+    response = client.place_market_sell(symbol, quantity, price)
+
+    assert isinstance(response, dict)
+
+
+#@pytest.mark.skip
+def test_place_limit_buy():
+    client = BinanceClient(APIKEY, APISECRET)
+    symbol = SYMBOLS[0]
+    quantity = 0.05
+    price = 0.002
+    response = client.place_limit_buy(symbol, quantity, price)
+
+    assert isinstance(response, dict)
+
+
+#@pytest.mark.skip
+def test_place_limit_sell():
+    client = BinanceClient(APIKEY, APISECRET)
+    symbol = SYMBOLS[0]
+    quantity = 0.1
+    price = 0.002
+    response = client.place_limit_sell(symbol, quantity, price)
+
+    assert isinstance(response, dict)
+
+
+#@pytest.mark.skip
+def test_check_order_status():
+    pass
+
+
+#@pytest.mark.skip
+def test_cancel_order():
+    pass

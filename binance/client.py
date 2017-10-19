@@ -22,6 +22,20 @@ WEBSOCKET_BASE_URL = 'wss://stream.binance.com:9443/ws/{symbol}'
 DEPTH_WEBSOCKET_URL = '{}@depth'.format(WEBSOCKET_BASE_URL)
 
 
+class Sides:
+    BUY = 'BUY'
+    SELL = 'SELL'
+
+class OrderTypes:
+    MARKET = 'MARKET'
+    LIMIT = 'LIMIT'
+
+
+class TimeInForce:
+    GTC = 'GTC'
+    IOC = 'IOC'
+
+
 class BinanceClient(GetLoggerMixin):
     __loggername__ = 'BinanceClient'
 
@@ -53,7 +67,7 @@ class BinanceClient(GetLoggerMixin):
 
         verb = verb.lower()
         url = self._prepare_request(path, verb, params, signed)
-        logger.info(f'{verb} {url}')
+        logger.info(f'{verb.upper()} {url}')
 
         response = getattr(requests, verb)(url, headers={
             'X-MBX-APIKEY' : self.apikey
@@ -68,7 +82,6 @@ class BinanceClient(GetLoggerMixin):
         logger.error(f'error: {response.reason}', exc_info=True)
         logger.debug(response_json['error'], extra=response_json)
 
-        #import pdb; pdb.set_trace()
         raise response.raise_for_status()
 
     async def _make_request_async(self, path, verb='get', params=None, signed=False):
@@ -76,7 +89,7 @@ class BinanceClient(GetLoggerMixin):
 
         verb = verb.lower()
         url = self._prepare_request(path, verb, params, signed)
-        logger.info(f'{verb} {url}')
+        logger.info(f'{verb.upper()} {url}')
 
         async with aiohttp.ClientSession() as client:
             response = await getattr(client, verb)(url, headers={
@@ -93,7 +106,6 @@ class BinanceClient(GetLoggerMixin):
             logger.error(f'error: {response.reason}', exc_info=True)
             logger.debug(response_json['error'], extra=response_json)
 
-            #import pdb; pdb.set_trace()
             response.raise_for_status()
 
     def _get_sorted_query_string(self, params):
@@ -108,7 +120,7 @@ class BinanceClient(GetLoggerMixin):
         url = '{}/v3/{}'.format(API_BASE_URL, path)
 
         params['timestamp'] = int(round(time.time() * 1000.0))
-        params['recvWindow'] = 6000
+        if 'recvWindow' not in params: params['recvWindow'] = 6000
         query_string = self._get_sorted_query_string(params)
 
         signature = hmac.new(
@@ -137,13 +149,6 @@ class BinanceClient(GetLoggerMixin):
     async def get_depth_async(self, symbol):
         return await self._make_request_async('depth',
                 params={'symbol': symbol})
-
-    def get_account_info(self):
-        return self._make_request('account', signed=True)
-
-    def get_open_orders(self, symbol):
-        return self._make_request('openOrders', signed=True,
-                params={'symbol' : symbol})
 
     def watch_depth(self, symbol):
         cache = self.depth_cache.get(symbol)
@@ -184,6 +189,86 @@ class BinanceClient(GetLoggerMixin):
             _watch_for_depth_events(),
             _get_initial_depth_info()
         ))
+
+    def get_account_info(self):
+        return self._make_request('account', signed=True)
+
+    def get_trade_info(self, symbol):
+        return self._make_request('myTrades', signed=True, params={'symbol' : symbol})
+
+    def get_open_orders(self, symbol):
+        return self._make_request('openOrders', signed=True,
+                params={'symbol' : symbol})
+
+    def place_market_buy(self, symbol, quantity, price, **kwargs):
+        """ Place a market buy order.
+        """
+        params = {
+            'symbol' : symbol,
+            'side' : Sides.BUY,
+            'type' : OrderTypes.MARKET,
+            'timeInForce' : kwargs.get('time_in_force', TimeInForce.GTC),
+            'quantity' : quantity,
+            'price' : price,
+            'recvWindow' : 60000
+        }
+        return self._make_request('order/test', verb='post',
+                signed=True, params=params)
+
+
+    def place_market_sell(self, symbol, quantity, price, **kwargs):
+        """ Place a market sell order.
+        """
+        params = {
+            'symbol' : symbol,
+            'side' : Sides.SELL,
+            'type' : OrderTypes.MARKET,
+            'timeInForce' : kwargs.get('time_in_force', TimeInForce.GTC),
+            'quantity' : quantity,
+            'price' : price,
+            'recvWindow' : 60000
+        }
+        return self._make_request('order/test', verb='post',
+                signed=True, params=params)
+
+
+    def place_limit_buy(self, symbol, quantity, price, **kwargs):
+        """ Place a market sell order.
+        """
+        params = {
+            'symbol' : symbol,
+            'side' : Sides.BUY,
+            'type' : OrderTypes.LIMIT,
+            'timeInForce' : kwargs.get('time_in_force', TimeInForce.GTC),
+            'quantity' : quantity,
+            'price' : price,
+            'recvWindow' : 60000
+        }
+        if 'stop_price' in kwargs:
+            params['stopPrice'] = kwargs['stop_price']
+
+        return self._make_request('order/test', verb='post',
+                signed=True, params=params)
+
+
+    def place_limit_sell(self, symbol, quantity, price, **kwargs):
+        """ Place a market sell order.
+        """
+        params = {
+            'symbol' : symbol,
+            'side' : Sides.SELL,
+            'type' : OrderTypes.LIMIT,
+            'timeInForce' : kwargs.get('time_in_force', TimeInForce.GTC),
+            'quantity' : quantity,
+            'price' : price,
+            'recvWindow' : 60000
+        }
+        if 'stop_price' in kwargs:
+            params['stopPrice'] = kwargs['stop_price']
+
+        return self._make_request('order/test', verb='post',
+                signed=True, params=params)
+
 
     def event(self, coro):
         if not asyncio.iscoroutinefunction(coro):
