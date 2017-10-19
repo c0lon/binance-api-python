@@ -153,8 +153,8 @@ class BinanceClient(GetLoggerMixin):
         return '{}?{}&signature={}'.format(
                 url, query_string, signature.hexdigest())
 
-        def get_ticker(self, symbol=''):
-            self._logger('get_ticker').info(symbol)
+    def get_ticker(self, symbol=''):
+        self._logger('get_ticker').info(symbol)
         ticker = self._make_request(Endpoints.TICKER)
 
         if symbol:
@@ -175,8 +175,8 @@ class BinanceClient(GetLoggerMixin):
         return await self._make_request_async(Endpoints.DEPTH,
                 params={'symbol': symbol})
 
-        def watch_depth(self, symbol):
-            self._logger('watch_depth').info(symbol)
+    def watch_depth(self, symbol):
+        self._logger('watch_depth').info(symbol)
 
         cache = self.depth_cache.get(symbol)
         if not cache:
@@ -217,8 +217,8 @@ class BinanceClient(GetLoggerMixin):
             _get_initial_depth_info()
             ))
 
-        def get_account_info(self):
-            self._logger().info('get_account_info')
+    def get_account_info(self):
+        self._logger().info('get_account_info')
         return self._make_request(Endpoints.ACCOUNT_INFO, signed=True)
 
     def get_trade_info(self, symbol):
@@ -226,28 +226,28 @@ class BinanceClient(GetLoggerMixin):
         return self._make_request(Endpoints.TRADE_INFO, signed=True,
                 params={'symbol' : symbol})
 
-        def get_open_orders(self, symbol):
-            self._logger('get_open_orders').info(symbol)
+    def get_open_orders(self, symbol):
+        self._logger('get_open_orders').info(symbol)
         return self._make_request(Endpoints.OPEN_ORDERS, signed=True,
                 params={'symbol' : symbol})
 
-        def get_all_orders(self, symbol):
-            self._logger('get_all_orders').info(symbol)
+    def get_all_orders(self, symbol):
+        self._logger('get_all_orders').info(symbol)
         return self._make_request(Endpoints.ALL_ORDERS, signed=True,
                 params={'symbol' : symbol})
 
-        def get_order_status(self, symbol, order_id):
-            self._logger('get_order_status').info(f'{symbol}: {order_id}')
+    def get_order_status(self, symbol, order_id):
+        self._logger('get_order_status').info(f'{symbol}: {order_id}')
         return self._make_request(Endpoints.ORDER, signed=True,
                 params={'symbol' : symbol, 'orderId' : order_id})
 
-        def cancel_order(self, symbol, order_id):
-            self._logger('cancel_order').info(f'{symbol}: {order_id}')
+    def cancel_order(self, symbol, order_id):
+        self._logger('cancel_order').info(f'{symbol}: {order_id}')
         return self._make_request(Endpoints.ORDER, verb='delete', signed=True,
                 params={'symbol' : symbol, 'orderId' : order_id})
 
-        def place_market_buy(self, symbol, quantity, **kwargs):
-            self._logger('place_market_buy').info(f'{symbol}: {quantity}')
+    def place_market_buy(self, symbol, quantity, **kwargs):
+        self._logger('place_market_buy').info(f'{symbol}: {quantity}')
 
         params = {
                 'symbol' : symbol,
@@ -260,8 +260,8 @@ class BinanceClient(GetLoggerMixin):
                 signed=True, params=params)
 
 
-        def place_market_sell(self, symbol, quantity, **kwargs):
-            self._logger('place_market_sell').info(f'{symbol}: {quantity}')
+    def place_market_sell(self, symbol, quantity, **kwargs):
+        self._logger('place_market_sell').info(f'{symbol}: {quantity}')
 
         params = {
                 'symbol' : symbol,
@@ -274,8 +274,8 @@ class BinanceClient(GetLoggerMixin):
                 signed=True, params=params)
 
 
-        def place_limit_buy(self, symbol, quantity, price, **kwargs):
-            self._logger('place_limit_buy').info(f'{symbol}: {quantity} @ {price}')
+    def place_limit_buy(self, symbol, quantity, price, **kwargs):
+        self._logger('place_limit_buy').info(f'{symbol}: {quantity} @ {price}')
 
         params = {
                 'symbol' : symbol,
@@ -293,8 +293,8 @@ class BinanceClient(GetLoggerMixin):
                 signed=True, params=params)
 
 
-        def place_limit_sell(self, symbol, quantity, price, **kwargs):
-            self._logger('place_limit_sell').info(f'{symbol}: {quantity} @ {price}')
+    def place_limit_sell(self, symbol, quantity, price, **kwargs):
+        self._logger('place_limit_sell').info(f'{symbol}: {quantity} @ {price}')
 
         params = {
                 'symbol' : symbol,
