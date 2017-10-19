@@ -11,7 +11,6 @@ from binance import (
 
 def quit_handler(signum, frame):
     sys.exit(0)
-
 signal.signal(signal.SIGINT, quit_handler)
 signal.signal(signal.SIGTERM, quit_handler)
 
@@ -41,3 +40,7 @@ def main():
         client.depth_cache[symbol].pretty_print()
 
     client.watch_depth(symbol)
+
+
+if __name__ == '__main__':
+    main()
