@@ -67,9 +67,9 @@ class BinanceClient(GetLoggerMixin):
         self.apikey = apikey
         self.apisecret = apisecret
         self.headers = {
-                'X-MBX-APIKEY' : self.apikey,
-                'content_type' : CONTENT_TYPE
-                }
+            'X-MBX-APIKEY' : self.apikey,
+            'content_type' : CONTENT_TYPE
+        }
 
         self._loop = asyncio.get_event_loop()
         self.depth_cache = {}
@@ -216,7 +216,7 @@ class BinanceClient(GetLoggerMixin):
         self._loop.run_until_complete(asyncio.gather(
             _watch_for_depth_events(),
             _get_initial_depth_info()
-            ))
+        ))
 
     def get_account_info(self):
         self._logger().info('get_account_info')
