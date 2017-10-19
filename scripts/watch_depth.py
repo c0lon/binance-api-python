@@ -28,11 +28,15 @@ def main():
 
     @client.event
     async def on_depth_ready():
+        """ This coroutine runs when the inital /depth API call returns.
+        """
         print('depth ready')
         client.depth_cache[symbol].pretty_print()
     
     @client.event
     async def on_depth_event(event):
+        """ This coroutine runs whenever a @depth websocket event is received.
+        """
         print(f'id: {event["u"]}') # print the event id
         client.depth_cache[symbol].pretty_print()
 

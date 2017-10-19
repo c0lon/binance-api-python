@@ -66,9 +66,9 @@ class BinanceClient(GetLoggerMixin):
         self.apikey = apikey
         self.apisecret = apisecret
         self.headers = {
-            'X-MBX-APIKEY' : self.apikey,
-            'content_type' : CONTENT_TYPE
-        }
+                'X-MBX-APIKEY' : self.apikey,
+                'content_type' : CONTENT_TYPE
+                }
 
         self._loop = asyncio.get_event_loop()
         self.depth_cache = {}
@@ -99,7 +99,7 @@ class BinanceClient(GetLoggerMixin):
 
         if response.ok:
             return response.json()
-        
+
         # don't overwrite 'msg' in log record
         response_json['error'] = response_json.pop('msg')
         logger.error(f'error: {response.reason}', exc_info=True)
@@ -149,12 +149,12 @@ class BinanceClient(GetLoggerMixin):
                 self.apisecret.encode(),
                 digestmod=hashlib.sha256)
         signature.update(query_string.encode())
-    
+
         return '{}?{}&signature={}'.format(
                 url, query_string, signature.hexdigest())
 
-    def get_ticker(self, symbol=''):
-        self._logger('get_ticker').info(symbol)
+        def get_ticker(self, symbol=''):
+            self._logger('get_ticker').info(symbol)
         ticker = self._make_request(Endpoints.TICKER)
 
         if symbol:
@@ -175,8 +175,8 @@ class BinanceClient(GetLoggerMixin):
         return await self._make_request_async(Endpoints.DEPTH,
                 params={'symbol': symbol})
 
-    def watch_depth(self, symbol):
-        self._logger('watch_depth').info(symbol)
+        def watch_depth(self, symbol):
+            self._logger('watch_depth').info(symbol)
 
         cache = self.depth_cache.get(symbol)
         if not cache:
@@ -207,7 +207,7 @@ class BinanceClient(GetLoggerMixin):
             depth = await self.get_depth_async(symbol)
             cache.set_initial_data(depth)
             logger.debug('depth ready')
-            
+
             if hasattr(self, 'on_depth_ready'):
                 logger.debug('on_depth_ready')
                 await self.on_depth_ready()
@@ -215,10 +215,10 @@ class BinanceClient(GetLoggerMixin):
         self._loop.run_until_complete(asyncio.gather(
             _watch_for_depth_events(),
             _get_initial_depth_info()
-        ))
+            ))
 
-    def get_account_info(self):
-        self._logger().info('get_account_info')
+        def get_account_info(self):
+            self._logger().info('get_account_info')
         return self._make_request(Endpoints.ACCOUNT_INFO, signed=True)
 
     def get_trade_info(self, symbol):
@@ -226,66 +226,66 @@ class BinanceClient(GetLoggerMixin):
         return self._make_request(Endpoints.TRADE_INFO, signed=True,
                 params={'symbol' : symbol})
 
-    def get_open_orders(self, symbol):
-        self._logger('get_open_orders').info(symbol)
+        def get_open_orders(self, symbol):
+            self._logger('get_open_orders').info(symbol)
         return self._make_request(Endpoints.OPEN_ORDERS, signed=True,
                 params={'symbol' : symbol})
 
-    def get_all_orders(self, symbol):
-        self._logger('get_all_orders').info(symbol)
+        def get_all_orders(self, symbol):
+            self._logger('get_all_orders').info(symbol)
         return self._make_request(Endpoints.ALL_ORDERS, signed=True,
                 params={'symbol' : symbol})
 
-    def get_order_status(self, symbol, order_id):
-        self._logger('get_order_status').info(f'{symbol}: {order_id}')
+        def get_order_status(self, symbol, order_id):
+            self._logger('get_order_status').info(f'{symbol}: {order_id}')
         return self._make_request(Endpoints.ORDER, signed=True,
                 params={'symbol' : symbol, 'orderId' : order_id})
 
-    def cancel_order(self, symbol, order_id):
-        self._logger('cancel_order').info(f'{symbol}: {order_id}')
+        def cancel_order(self, symbol, order_id):
+            self._logger('cancel_order').info(f'{symbol}: {order_id}')
         return self._make_request(Endpoints.ORDER, verb='delete', signed=True,
                 params={'symbol' : symbol, 'orderId' : order_id})
 
-    def place_market_buy(self, symbol, quantity, **kwargs):
-        self._logger('place_market_buy').info(f'{symbol}: {quantity}')
+        def place_market_buy(self, symbol, quantity, **kwargs):
+            self._logger('place_market_buy').info(f'{symbol}: {quantity}')
 
         params = {
-            'symbol' : symbol,
-            'side' : Sides.BUY,
-            'type' : OrderTypes.MARKET,
-            'quantity' : quantity,
-            'recvWindow' : 60000
-        }
+                'symbol' : symbol,
+                'side' : Sides.BUY,
+                'type' : OrderTypes.MARKET,
+                'quantity' : quantity,
+                'recvWindow' : 60000
+                }
         return self._make_request(Endpoints.ORDER, verb='post',
                 signed=True, params=params)
 
 
-    def place_market_sell(self, symbol, quantity, **kwargs):
-        self._logger('place_market_sell').info(f'{symbol}: {quantity}')
+        def place_market_sell(self, symbol, quantity, **kwargs):
+            self._logger('place_market_sell').info(f'{symbol}: {quantity}')
 
         params = {
-            'symbol' : symbol,
-            'side' : Sides.SELL,
-            'type' : OrderTypes.MARKET,
-            'quantity' : quantity,
-            'recvWindow' : 60000
-        }
+                'symbol' : symbol,
+                'side' : Sides.SELL,
+                'type' : OrderTypes.MARKET,
+                'quantity' : quantity,
+                'recvWindow' : 60000
+                }
         return self._make_request(Endpoints.ORDER, verb='post',
                 signed=True, params=params)
 
 
-    def place_limit_buy(self, symbol, quantity, price, **kwargs):
-        self._logger('place_limit_buy').info(f'{symbol}: {quantity} @ {price}')
+        def place_limit_buy(self, symbol, quantity, price, **kwargs):
+            self._logger('place_limit_buy').info(f'{symbol}: {quantity} @ {price}')
 
         params = {
-            'symbol' : symbol,
-            'side' : Sides.BUY,
-            'type' : OrderTypes.LIMIT,
-            'timeInForce' : kwargs.get('time_in_force', TimeInForce.GTC),
-            'quantity' : quantity,
-            'price' : price,
-            'recvWindow' : 60000
-        }
+                'symbol' : symbol,
+                'side' : Sides.BUY,
+                'type' : OrderTypes.LIMIT,
+                'timeInForce' : kwargs.get('time_in_force', TimeInForce.GTC),
+                'quantity' : quantity,
+                'price' : price,
+                'recvWindow' : 60000
+                }
         if 'stop_price' in kwargs:
             params['stopPrice'] = kwargs['stop_price']
 
@@ -293,18 +293,18 @@ class BinanceClient(GetLoggerMixin):
                 signed=True, params=params)
 
 
-    def place_limit_sell(self, symbol, quantity, price, **kwargs):
-        self._logger('place_limit_sell').info(f'{symbol}: {quantity} @ {price}')
+        def place_limit_sell(self, symbol, quantity, price, **kwargs):
+            self._logger('place_limit_sell').info(f'{symbol}: {quantity} @ {price}')
 
         params = {
-            'symbol' : symbol,
-            'side' : Sides.SELL,
-            'type' : OrderTypes.LIMIT,
-            'timeInForce' : kwargs.get('time_in_force', TimeInForce.GTC),
-            'quantity' : quantity,
-            'price' : price,
-            'recvWindow' : 60000
-        }
+                'symbol' : symbol,
+                'side' : Sides.SELL,
+                'type' : OrderTypes.LIMIT,
+                'timeInForce' : kwargs.get('time_in_force', TimeInForce.GTC),
+                'quantity' : quantity,
+                'price' : price,
+                'recvWindow' : 60000
+                }
         if 'stop_price' in kwargs:
             params['stopPrice'] = kwargs['stop_price']
 
@@ -313,6 +313,16 @@ class BinanceClient(GetLoggerMixin):
 
 
     def event(self, coro):
+        """ Register a callback function on an event.
+
+        Supported events:
+          client.on_depth_ready
+            fires when the initial /depth api call returns.
+
+          client.on_depth_event
+            fires whenever a @depth websocket event is received.
+        """
+
         if not asyncio.iscoroutinefunction(coro):
             raise TypeError('event registered must be a cororoutine function')
 
