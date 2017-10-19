@@ -21,6 +21,17 @@ API_BASE_URL = 'https://www.binance.com/api'
 WEBSOCKET_BASE_URL = 'wss://stream.binance.com:9443/ws/{symbol}'
 DEPTH_WEBSOCKET_URL = '{}@depth'.format(WEBSOCKET_BASE_URL)
 
+CONTENT_TYPE = 'x-www-form-urlencoded'
+
+
+class Endpoints:
+    ACCOUNT_INFO = 'account'
+    TRADE_INFO = 'myTrades'
+    ORDER = 'order'
+    ALL_ORDERS = 'allOrders'
+    OPEN_ORDERS = 'openOrders'
+    TICKER = 'ticker/allPrices'
+    DEPTH = 'depth'
 
 class Sides:
     BUY = 'BUY'
@@ -30,6 +41,14 @@ class OrderTypes:
     MARKET = 'MARKET'
     LIMIT = 'LIMIT'
 
+class OrderStatus:
+    NEW = 'NEW'
+    CANCELED = 'CANCELED'
+    PARTIALLY_FILLED = 'PARTIALLY_FILLED'
+    FILLED = 'FILLED'
+    PENDING_CANCEL = 'PENDING_CANCEL'
+    REJECTED = 'REJECTED'
+    EXPIRED = 'EXPIRED'
 
 class TimeInForce:
     GTC = 'GTC'
@@ -46,6 +65,11 @@ class BinanceClient(GetLoggerMixin):
 
         self.apikey = apikey
         self.apisecret = apisecret
+        self.headers = {
+            'X-MBX-APIKEY' : self.apikey,
+            'content_type' : CONTENT_TYPE
+        }
+
         self._loop = asyncio.get_event_loop()
         self.depth_cache = {}
 
@@ -69,9 +93,8 @@ class BinanceClient(GetLoggerMixin):
         url = self._prepare_request(path, verb, params, signed)
         logger.info(f'{verb.upper()} {url}')
 
-        response = getattr(requests, verb)(url, headers={
-            'X-MBX-APIKEY' : self.apikey
-        })
+        http_function = getattr(requests, verb)
+        response = http_function(url, headers=self.headers)
         response_json = response.json()
 
         if response.ok:
@@ -92,9 +115,8 @@ class BinanceClient(GetLoggerMixin):
         logger.info(f'{verb.upper()} {url}')
 
         async with aiohttp.ClientSession() as client:
-            response = await getattr(client, verb)(url, headers={
-                'X-MBX-APIKEY' : self.apikey
-            })
+            http_function = getattr(client, verb)
+            response = await http_function(url, headers=self.headers)
 
             response_json = await response.json(content_type=None)
             if response.reason == 'OK':
@@ -132,7 +154,8 @@ class BinanceClient(GetLoggerMixin):
                 url, query_string, signature.hexdigest())
 
     def get_ticker(self, symbol=''):
-        ticker = self._make_request('ticker/allPrices')
+        self._logger('get_ticker').info(symbol)
+        ticker = self._make_request(Endpoints.TICKER)
 
         if symbol:
             for _symbol in ticker:
@@ -144,13 +167,17 @@ class BinanceClient(GetLoggerMixin):
         return ticker
 
     def get_depth(self, symbol):
-        return self._make_request('depth', params={'symbol' : symbol})
+        self._logger('get_depth').info(symbol)
+        return self._make_request(Endpoints.DEPTH, params={'symbol' : symbol})
 
     async def get_depth_async(self, symbol):
-        return await self._make_request_async('depth',
+        self._logger('get_depth_async').info(symbol)
+        return await self._make_request_async(Endpoints.DEPTH,
                 params={'symbol': symbol})
 
     def watch_depth(self, symbol):
+        self._logger('watch_depth').info(symbol)
+
         cache = self.depth_cache.get(symbol)
         if not cache:
             cache = DepthCache()
@@ -191,50 +218,65 @@ class BinanceClient(GetLoggerMixin):
         ))
 
     def get_account_info(self):
-        return self._make_request('account', signed=True)
+        self._logger().info('get_account_info')
+        return self._make_request(Endpoints.ACCOUNT_INFO, signed=True)
 
     def get_trade_info(self, symbol):
-        return self._make_request('myTrades', signed=True, params={'symbol' : symbol})
-
-    def get_open_orders(self, symbol):
-        return self._make_request('openOrders', signed=True,
+        self._logger('get_trade_info').info(symbol)
+        return self._make_request(Endpoints.TRADE_INFO, signed=True,
                 params={'symbol' : symbol})
 
-    def place_market_buy(self, symbol, quantity, price, **kwargs):
-        """ Place a market buy order.
-        """
+    def get_open_orders(self, symbol):
+        self._logger('get_open_orders').info(symbol)
+        return self._make_request(Endpoints.OPEN_ORDERS, signed=True,
+                params={'symbol' : symbol})
+
+    def get_all_orders(self, symbol):
+        self._logger('get_all_orders').info(symbol)
+        return self._make_request(Endpoints.ALL_ORDERS, signed=True,
+                params={'symbol' : symbol})
+
+    def get_order_status(self, symbol, order_id):
+        self._logger('get_order_status').info(f'{symbol}: {order_id}')
+        return self._make_request(Endpoints.ORDER, signed=True,
+                params={'symbol' : symbol, 'orderId' : order_id})
+
+    def cancel_order(self, symbol, order_id):
+        self._logger('cancel_order').info(f'{symbol}: {order_id}')
+        return self._make_request(Endpoints.ORDER, verb='delete', signed=True,
+                params={'symbol' : symbol, 'orderId' : order_id})
+
+    def place_market_buy(self, symbol, quantity, **kwargs):
+        self._logger('place_market_buy').info(f'{symbol}: {quantity}')
+
         params = {
             'symbol' : symbol,
             'side' : Sides.BUY,
             'type' : OrderTypes.MARKET,
-            'timeInForce' : kwargs.get('time_in_force', TimeInForce.GTC),
             'quantity' : quantity,
-            'price' : price,
             'recvWindow' : 60000
         }
-        return self._make_request('order/test', verb='post',
+        return self._make_request(Endpoints.ORDER, verb='post',
                 signed=True, params=params)
 
 
-    def place_market_sell(self, symbol, quantity, price, **kwargs):
-        """ Place a market sell order.
-        """
+    def place_market_sell(self, symbol, quantity, **kwargs):
+        self._logger('place_market_sell').info(f'{symbol}: {quantity}')
+
         params = {
             'symbol' : symbol,
             'side' : Sides.SELL,
             'type' : OrderTypes.MARKET,
-            'timeInForce' : kwargs.get('time_in_force', TimeInForce.GTC),
             'quantity' : quantity,
-            'price' : price,
             'recvWindow' : 60000
         }
-        return self._make_request('order/test', verb='post',
+        return self._make_request(Endpoints.ORDER, verb='post',
                 signed=True, params=params)
 
 
     def place_limit_buy(self, symbol, quantity, price, **kwargs):
-        """ Place a market sell order.
-        """
+        self._logger('place_limit_buy').info(f'{symbol}: {quantity} @ {price}')
+
         params = {
             'symbol' : symbol,
             'side' : Sides.BUY,
@@ -247,13 +289,13 @@ class BinanceClient(GetLoggerMixin):
         if 'stop_price' in kwargs:
             params['stopPrice'] = kwargs['stop_price']
 
-        return self._make_request('order/test', verb='post',
+        return self._make_request(Endpoints.ORDER, verb='post',
                 signed=True, params=params)
 
 
     def place_limit_sell(self, symbol, quantity, price, **kwargs):
-        """ Place a market sell order.
-        """
+        self._logger('place_limit_sell').info(f'{symbol}: {quantity} @ {price}')
+
         params = {
             'symbol' : symbol,
             'side' : Sides.SELL,
@@ -266,7 +308,7 @@ class BinanceClient(GetLoggerMixin):
         if 'stop_price' in kwargs:
             params['stopPrice'] = kwargs['stop_price']
 
-        return self._make_request('order/test', verb='post',
+        return self._make_request(Endpoints.ORDER, verb='post',
                 signed=True, params=params)
 
 
