@@ -7,7 +7,6 @@ import string
 import yaml
 
 import binance
-from binance.utils import *
 
 
 here = os.path.dirname(os.path.realpath(__file__))
