@@ -28,6 +28,9 @@ See [watch_depth.py](scripts/watch_depth.py) for an example of how to
 use the asynchronous `watch_depth()` method. In order for the script
 to work correctly, you must put your `apiKey` and `secretKey` into
 the `apikey` and `apisecret` slots in [config.yaml](config.yaml), respectively.
+Then call:
+
+`watchdepth config.ini <SYMBOL>`
 
 ```
 usage: watchdepth [-h] [--log-level {DEBUG,INFO,WARN,ERROR,CRITICAL}]
