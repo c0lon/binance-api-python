@@ -3,10 +3,7 @@ import hashlib
 import hmac
 import json
 import time
-from urllib.parse import (
-    quote,
-    urljoin,
-    )
+from urllib.parse import quote
 
 import aiohttp
 import requests
