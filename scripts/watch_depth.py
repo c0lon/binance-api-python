@@ -1,3 +1,7 @@
+""" Watch the depth of a given symbol.
+"""
+
+
 import signal
 import sys
 

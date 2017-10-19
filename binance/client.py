@@ -1,3 +1,7 @@
+""" Binance Client API Wrapper.
+"""
+
+
 import asyncio
 import hashlib
 import hmac

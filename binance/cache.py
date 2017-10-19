@@ -1,3 +1,7 @@
+""" DepthCache helper class for the BinanceClient class.
+"""
+
+
 from collections import deque
 
 from .utils import GetLoggerMixin

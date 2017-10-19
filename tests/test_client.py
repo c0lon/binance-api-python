@@ -1,13 +1,13 @@
+""" Test suite for the Binance Client API Wrapper.
+"""
+
+
 import asyncio
 import pytest
 import random
 
-from binance import (
-    BinanceClient,
-    )
-from binance.client import (
-    OrderStatus,
-    )
+from binance import BinanceClient
+from binance.client import OrderStatus
 
 from . import (
     APIKEY,
