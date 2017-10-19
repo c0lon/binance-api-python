@@ -25,7 +25,7 @@ client.get_account_info()
 ```
 
 See [watch_depth.py](scripts/watch_depth.py) for an example of how to
-use the asynchronous `watch_depth()` method. Run the script with:
+use the asynchronous `watch_depth()` method.
 
 ```
 usage: watchdepth [-h] [--log-level {DEBUG,INFO,WARN,ERROR,CRITICAL}]
