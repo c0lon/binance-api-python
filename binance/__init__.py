@@ -6,10 +6,6 @@ import sys
 import yaml
 
 from .client import BinanceClient
-from .websocket import (
-        watch_depth,
-        watch_klines,
-        )
 
 
 here = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -17,6 +13,19 @@ with open(os.path.join(here, 'VERSION')) as f:
     __version__ = f.read().strip()
 __author__ = 'c0lon'
 __email__ = ''
+
+
+def get_default_arg_parser():
+    arg_parser = ArgumentParser()
+    arg_parser.add_argument('config_uri', type=str,
+            help='the config file to use.')
+    arg_parser.add_argument('--log-level', type=str,
+            choices=['DEBUG', 'INFO', 'WARN', 'ERROR', 'CRITICAL'])
+    arg_parser.add_argument('--version', action='store_true',
+            help='Show the package version and exit.')
+    arg_parser.add_argument('--debug', action='store_true')
+
+    return arg_parser
 
 
 def configure_app(config_uri='', arg_parser=None):
@@ -40,14 +49,7 @@ def configure_app(config_uri='', arg_parser=None):
 
     args = {'config_uri' : config_uri}
     if not args['config_uri']:
-        arg_parser = arg_parser or ArgumentParser()
-        arg_parser.add_argument('config_uri', type=str,
-                help='the config file to use.')
-        arg_parser.add_argument('--log-level', type=str,
-                choices=['DEBUG', 'INFO', 'WARN', 'ERROR', 'CRITICAL'])
-        arg_parser.add_argument('--version', action='store_true',
-                help='Show the package version and exit.')
-        arg_parser.add_argument('--debug', action='store_true')
+        arg_parser = arg_parser or get_default_arg_parser()
         args = vars(arg_parser.parse_args())
 
     if args.pop('version', None):
@@ -71,4 +73,3 @@ def configure_app(config_uri='', arg_parser=None):
     config['main']['debug'] = args.get('debug', False)
 
     return config['main'], config
-

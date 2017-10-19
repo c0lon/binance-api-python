@@ -20,7 +20,7 @@ SYMBOLS = [
 ]
 
 
-#@pytest.mark.skip
+@pytest.mark.skip
 def test_get_ticker_all():
     client = BinanceClient(APIKEY, APISECRET)
     ticker = client.get_ticker()
@@ -37,7 +37,7 @@ def test_get_ticker_all():
         assert symbol in symbols
 
 
-#@pytest.mark.skip
+@pytest.mark.skip
 def test_get_ticker():
     client = BinanceClient(APIKEY, APISECRET)
     symbol = random.choice(SYMBOLS)
@@ -48,7 +48,7 @@ def test_get_ticker():
     assert isinstance(ticker['price'], str)
 
 
-#@pytest.mark.skip
+@pytest.mark.skip
 def test_get_ticker_invalid():
     client = BinanceClient(APIKEY, APISECRET)
     symbol = 'DOGE'
@@ -67,7 +67,7 @@ def assert_depth(depth):
     assert isinstance(depth['asks'], list)
 
 
-#@pytest.mark.skip
+@pytest.mark.skip
 def test_get_depth_data():
     client = BinanceClient(APIKEY, APISECRET)
     symbol = random.choice(SYMBOLS)
@@ -76,7 +76,7 @@ def test_get_depth_data():
     assert_depth(depth)
 
 
-#@pytest.mark.skip
+@pytest.mark.skip
 def test_get_depth_data_async():
     client = BinanceClient(APIKEY, APISECRET)
     
@@ -89,9 +89,18 @@ def test_get_depth_data_async():
     loop.run_until_complete(get_depth())
 
 
-#@pytest.mark.skip
+@pytest.mark.skip
 def test_get_account_info():
     client = BinanceClient(APIKEY, APISECRET)
     account_info = client.get_account_info()
 
     assert isinstance(account_info, dict)
+
+
+#@pytest.mark.skip
+def test_get_open_orders():
+    client = BinanceClient(APIKEY, APISECRET)
+    symbol = random.choice(SYMBOLS)
+    open_orders = client.get_open_orders(symbol)
+
+    assert isinstance(open_orders, list)
