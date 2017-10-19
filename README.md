@@ -1,5 +1,14 @@
 # binance
 
+## Installation
+```
+git clone https://github.com/c0lon/binance.git
+cd binance
+python setup.py install
+```
+
+Requires python 3.5 or greater
+
 ## Goals
 
 Build API clients with the following features:
