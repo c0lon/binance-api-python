@@ -103,4 +103,5 @@ venv.bak/
 # mypy
 .mypy_cache/
 notes.txt
-*.yaml
+development.yaml
+production.yaml

@@ -26,9 +26,12 @@ class BinanceClient(GetLoggerMixin):
     __loggername__ = 'BinanceClient'
 
     def __init__(self, apikey, apisecret):
+        if not apikey or not apisecret:
+            self._logger().error('invalid api key/secret')
+            raise ValueError('invalid api key/secret')
+
         self.apikey = apikey
         self.apisecret = apisecret
-
         self._loop = asyncio.get_event_loop()
         self.depth_cache = {}
 
