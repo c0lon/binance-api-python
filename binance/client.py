@@ -260,7 +260,6 @@ class BinanceClient(GetLoggerMixin):
         return self._make_request(Endpoints.ORDER, verb='post',
             signed=True, params=params)
 
-
     def place_market_sell(self, symbol, quantity, **kwargs):
         self._logger('place_market_sell').info(f'{symbol}: {quantity}')
 
@@ -273,7 +272,6 @@ class BinanceClient(GetLoggerMixin):
         }
         return self._make_request(Endpoints.ORDER, verb='post',
                 signed=True, params=params)
-
 
     def place_limit_buy(self, symbol, quantity, price, **kwargs):
         self._logger('place_limit_buy').info(f'{symbol}: {quantity} @ {price}')
@@ -293,7 +291,6 @@ class BinanceClient(GetLoggerMixin):
         return self._make_request(Endpoints.ORDER, verb='post',
                 signed=True, params=params)
 
-
     def place_limit_sell(self, symbol, quantity, price, **kwargs):
         self._logger('place_limit_sell').info(f'{symbol}: {quantity} @ {price}')
 
@@ -311,7 +308,6 @@ class BinanceClient(GetLoggerMixin):
 
         return self._make_request(Endpoints.ORDER, verb='post',
                 signed=True, params=params)
-
 
     def event(self, coro):
         """ Register a callback function on an event.
