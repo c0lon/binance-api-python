@@ -21,11 +21,11 @@ signal.signal(signal.SIGTERM, quit_handler)
 def main():
     arg_parser = get_default_arg_parser()
     arg_parser.add_argument('symbol', type=str,
-            help='watch the candlesticks of symbol <SYMBOL>.')
+            help='watch the klines of symbol <SYMBOL>.')
     arg_parser.add_argument('interval', type=str,
-            help='set the candlestick interval.')
+            help='set the klines interval.')
     arg_parser.add_argument('-d', '--depth', type=int,
-            help='display the <DEPTH> latest candlesticks.')
+            help='display the <DEPTH> latest klines.')
 
     settings, config = configure_app(arg_parser=arg_parser)
     symbol = config['args']['symbol']
@@ -45,7 +45,6 @@ def main():
     async def on_klines_event(event):
         """ This coroutine runs whenever a @klines websocket event is received.
         """
-        print(f'id: {event["E"]}') # print the event timestamp
         client.klines_cache[(symbol, interval)].pretty_print(depth)
 
     client.watch_klines(symbol, interval)

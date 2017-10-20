@@ -100,9 +100,11 @@ class KlineCache(GetLoggerMixin):
         logger = self._logger('_update')
 
         event_kline = self._transform_event(event)
-        self.klines.append((event['E'], event_kline))
-        if len(self.klines) > self.depth:
-            self.klines.pop(0)
+        latest_kline = self.klines[-1]
+        if event['E'] != latest_kline[0]:
+            self.klines.append((event['E'], event_kline))
+            if len(self.klines) > self.depth:
+                self.klines.pop(0)
 
     def _transform_event(self, event):
         return {
