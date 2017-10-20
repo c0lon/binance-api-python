@@ -11,13 +11,16 @@ from binance import (
     BinanceClient,
     configure_app,
     )
-from binance.client import OrderStatus
+from binance.client import (
+    Intervals,
+    OrderStatus,
+    )
 
 
-TEST_CONFIG_FILE = 'config.yaml'
+TEST_CONFIG_FILE = 'development.yaml'
 
 here = os.path.dirname(os.path.realpath(__file__))
-config_uri = os.path.join(here, 'config.yaml')
+config_uri = os.path.join(here, TEST_CONFIG_FILE)
 SETTINGS, GLOBAL_CONFIG = configure_app(config_uri=config_uri)
 
 APIKEY = SETTINGS['apikey']
@@ -72,6 +75,33 @@ def test_get_ticker_invalid():
         assert symbol in e.args[0]
     else:
         assert False
+
+
+def assert_candlesticks(candlesticks):
+    assert isinstance(candlesticks, list)
+    for candlestick in candlesticks:
+        assert isinstance(candlestick, list)
+
+
+#@pytest.mark.skip
+def test_get_candlesticks():
+    client = BinanceClient(APIKEY, APISECRET)
+    symbol = random.choice(SYMBOLS)
+    candlesticks = client.get_candlesticks(symbol, Intervals.THIRTY_MINUTE)
+    assert_candlesticks(candlesticks)
+
+
+#@pytest.mark.skip
+def test_get_candlesticks_async():
+    client = BinanceClient(APIKEY, APISECRET)
+
+    async def get_candlesticks():
+        symbol = random.choice(SYMBOLS)
+        candlesticks = await client.get_candlesticks_async(symbol, Intervals.ONE_HOUR)
+        assert_candlesticks(candlesticks)
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(get_candlesticks())
 
 
 def assert_depth(depth):

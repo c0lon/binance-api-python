@@ -21,18 +21,20 @@ API_BASE_URL = 'https://www.binance.com/api'
 
 WEBSOCKET_BASE_URL = 'wss://stream.binance.com:9443/ws/{symbol}'
 DEPTH_WEBSOCKET_URL = '{}@depth'.format(WEBSOCKET_BASE_URL)
+KLINE_WEBSOCKET_URL = '{}@kline'.format(WEBSOCKET_BASE_URL)
 
 CONTENT_TYPE = 'x-www-form-urlencoded'
 
 
 class Endpoints:
-    ACCOUNT_INFO = 'account'
-    TRADE_INFO = 'myTrades'
-    ORDER = 'order'
-    ALL_ORDERS = 'allOrders'
-    OPEN_ORDERS = 'openOrders'
-    TICKER = 'ticker/allPrices'
-    DEPTH = 'depth'
+    ACCOUNT_INFO = 'v3/account'
+    TRADE_INFO = 'v3/myTrades'
+    ORDER = 'v3/order'
+    ALL_ORDERS = 'v3/allOrders'
+    OPEN_ORDERS = 'v3/openOrders'
+    TICKER = 'v1/ticker/allPrices'
+    DEPTH = 'v1/depth'
+    KLINES = 'v1/klines'
 
 class Sides:
     BUY = 'BUY'
@@ -54,6 +56,23 @@ class OrderStatus:
 class TimeInForce:
     GTC = 'GTC'
     IOC = 'IOC'
+
+class Intervals:
+    ONE_MINUTE = '1m'
+    THREE_MINUTE = '3m'
+    FIVE_MINUTE = '5m'
+    FIFTEEN_MINUTE = '15m'
+    THIRTY_MINUTE = '30m'
+    ONE_HOUR = '1h'
+    TWO_HOUR = '2h'
+    FOUR_HOUR = '4h'
+    SIX_HOUR = '6h'
+    EIGHT_HOUR = '8h'
+    TWELVE_HOUR = '12h'
+    ONE_DAY = '1d'
+    THREE_DAY = '3d'
+    ONE_WEEK_ = '1w'
+    ONE_MONTH = '1M'
 
 
 class BinanceClient(GetLoggerMixin):
@@ -81,9 +100,9 @@ class BinanceClient(GetLoggerMixin):
             url = self._sign_request(path, params)
         elif params:
             query_string = self._get_sorted_query_string(params)
-            url = '{}/v1/{}?{}'.format(API_BASE_URL, path, query_string)
+            url = '{}/{}?{}'.format(API_BASE_URL, path, query_string)
         else:
-            url = '{}/v1/{}'.format(API_BASE_URL, path)
+            url = '{}/{}'.format(API_BASE_URL, path)
 
         return url
 
@@ -121,7 +140,7 @@ class BinanceClient(GetLoggerMixin):
 
             response_json = await response.json(content_type=None)
             if response.reason == 'OK':
-                logger.debug('success', extra=response_json)
+                logger.debug('success', extra={'response' : response_json})
                 return response_json
 
             # don't overwrite 'msg' in log record
@@ -140,7 +159,7 @@ class BinanceClient(GetLoggerMixin):
         return '&'.join(sorted_parameters)
 
     def _sign_request(self, path, params):
-        url = '{}/v3/{}'.format(API_BASE_URL, path)
+        url = '{}/{}'.format(API_BASE_URL, path)
 
         params['timestamp'] = int(round(time.time() * 1000.0))
         if 'recvWindow' not in params: params['recvWindow'] = 6000
@@ -217,6 +236,37 @@ class BinanceClient(GetLoggerMixin):
             _watch_for_depth_events(),
             _get_initial_depth_info()
         ))
+
+    def get_klines(self, symbol, interval, **kwargs):
+        self._logger('get_klines').info(f'{symbol} {interval}')
+
+        params = {
+            'symbol' : symbol,
+            'interval' : interval,
+            'limit' : kwargs.get('limit', 500)
+        }
+        if 'start_time' in kwargs:
+            params['startTime'] = kwargs['start_time']
+        if 'end_time' in kwargs:
+            params['endTime'] = kwargs['end_time']
+
+        return self._make_request(Endpoints.KLINES, verb='get', params=params)
+
+    async def get_klines_async(self, symbol, interval, **kwargs):
+        self._logger('get_klines_async').info(f'{symbol} {interval}')
+
+        params = {
+            'symbol' : symbol,
+            'interval' : interval,
+            'limit' : kwargs.get('limit', 500)
+        }
+        if 'start_time' in kwargs:
+            params['startTime'] = kwargs['start_time']
+        if 'end_time' in kwargs:
+            params['endTime'] = kwargs['end_time']
+
+        return await self._make_request_async(Endpoints.KLINES,
+                verb='get', params=params)
 
     def get_account_info(self):
         self._logger().info('get_account_info')
