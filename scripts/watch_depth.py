@@ -22,9 +22,12 @@ def main():
     arg_parser = get_default_arg_parser()
     arg_parser.add_argument('symbol', type=str,
             help='watch the depth of symbol <SYMBOL>.')
+    arg_parser.add_argument('-d', '--depth', type=int,
+            help='show the <DEPTH> latest candlesticks.')
 
     settings, config = configure_app(arg_parser=arg_parser)
     symbol = config['args']['symbol']
+    depth = config['args']['depth']
 
     client = BinanceClient(settings['apikey'], settings['apisecret'])
 
@@ -33,14 +36,14 @@ def main():
         """ This coroutine runs when the inital /depth API call returns.
         """
         print('depth ready')
-        client.depth_cache[symbol].pretty_print()
+        client.depth_cache[symbol].pretty_print(depth)
     
     @client.event
     async def on_depth_event(event):
         """ This coroutine runs whenever a @depth websocket event is received.
         """
         print(f'id: {event["u"]}') # print the event id
-        client.depth_cache[symbol].pretty_print()
+        client.depth_cache[symbol].pretty_print(depth)
 
     client.watch_depth(symbol)
 

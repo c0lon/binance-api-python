@@ -82,3 +82,66 @@ class DepthCache(GetLoggerMixin):
         for ask_price, ask_quantity in asks:
             print(f'{float(ask_price):12f} : {float(ask_quantity):12f}')
         print()
+
+
+class KlineCache(GetLoggerMixin):
+    __loggername__ = 'KlineCache'
+
+    def __init__(self):
+        self.klines = []
+        self.received_api_response = False
+        self.depth = 0
+
+    def update(self, event):
+        if self.received_api_response:
+            self._update(event)
+
+    def _update(self, event):
+        logger = self._logger('_update')
+
+        event_kline = self._transform_event(event)
+        self.klines.append((event['E'], event_kline))
+        if len(self.klines) > self.depth:
+            self.klines.pop(0)
+
+    def _transform_event(self, event):
+        return {
+            'open' : event['k']['o'],
+            'high' : event['k']['h'],
+            'low' : event['k']['l'],
+            'close' : event['k']['c'],
+            'volume' : event['k']['v']
+        }
+
+    def set_initial_data(self, klines):
+        self._logger().info('set_initial_data')
+
+        for kline in klines:
+            transformed_kline = self._transform_kline(kline)
+            self.klines.append((kline[0], transformed_kline))
+        self.depth = len(self.klines)
+        self.received_api_response = True
+
+    def _transform_kline(self, kline):
+        return {
+            'open' : kline[1],
+            'high' : kline[2],
+            'low' : kline[3],
+            'close' : kline[4],
+            'volume' : kline[5]
+        }
+
+    def pretty_print(self, depth=40):
+        if depth:
+            klines = self.klines[-depth:]
+        else:
+            klines = self.klines
+
+        for kline_timestamp, kline in klines:
+            print(f'timestamp: {kline_timestamp}')
+            print(f'    open: {kline["open"]}')
+            print(f'    high: {kline["high"]}')
+            print(f'    low: {kline["low"]}')
+            print(f'    close: {kline["close"]}')
+            print(f'    volume: {kline["volume"]}')
+            print()

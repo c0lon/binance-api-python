@@ -13,7 +13,10 @@ import aiohttp
 import requests
 import websockets as ws
 
-from .cache import DepthCache
+from .cache import (
+    DepthCache,
+    KlineCache,
+    )
 from .utils import GetLoggerMixin
 
 
@@ -92,6 +95,7 @@ class BinanceClient(GetLoggerMixin):
 
         self._loop = asyncio.get_event_loop()
         self.depth_cache = {}
+        self.klines_cache = {}
 
     def _prepare_request(self, path, verb, params, signed):
         params = params or {}
@@ -207,6 +211,7 @@ class BinanceClient(GetLoggerMixin):
             logger = self._logger('_watch_for_depth_events')
 
             url = DEPTH_WEBSOCKET_URL.format(symbol=symbol.lower())
+            logger.debug(f'opening websocket connection: {url}')
             async with ws.connect(url) as socket:
                 while True:
                     event = await socket.recv()
@@ -267,6 +272,50 @@ class BinanceClient(GetLoggerMixin):
 
         return await self._make_request_async(Endpoints.KLINES,
                 verb='get', params=params)
+
+    def watch_klines(self, symbol, interval, **kwargs):
+        self._logger('watch_klines').info(f'{symbol} {interval}')
+
+        cache = self.klines_cache.get((symbol, interval))
+        if not cache:
+            cache = KlineCache()
+            self.klines_cache[(symbol, interval)] = cache
+
+        async def _watch_for_kline_events():
+            logger = self._logger('_watch_for_kline_events')
+
+            url = KLINE_WEBSOCKET_URL.format(symbol=symbol.lower())
+            url += '_{}'.format(interval)
+            logger.debug(f'opening websocket connection: {url}')
+            async with ws.connect(url) as socket:
+                while True:
+                    event = await socket.recv()
+                    try:
+                        event_dict = json.loads(event)
+                        logger.debug(f'event: {event_dict["E"]}')
+                        cache.update(event_dict)
+                    except:
+                        pass
+
+                    if hasattr(self, 'on_klines_event'):
+                        logger.debug('on_klines_event')
+                        await self.on_klines_event(event_dict)
+
+        async def _get_initial_kline_info():
+            logger = self._logger('_get_initial_kline_info')
+
+            klines = await self.get_klines_async(symbol, interval)
+            cache.set_initial_data(klines)
+            logger.debug('klines ready')
+
+            if hasattr(self, 'on_klines_ready'):
+                logger.debug('on_klines_ready')
+                await self.on_klines_ready()
+
+        self._loop.run_until_complete(asyncio.gather(
+            _watch_for_kline_events(),
+            _get_initial_kline_info()
+        ))
 
     def get_account_info(self):
         self._logger().info('get_account_info')
