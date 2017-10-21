@@ -20,7 +20,7 @@ from .cache import (
 from .utils import GetLoggerMixin
 
 
-API_BASE_URL = 'https://www.binance.com/api'
+API_BASE_URL = 'https://www.binance.com'
 
 WEBSOCKET_BASE_URL = 'wss://stream.binance.com:9443/ws/{symbol}'
 DEPTH_WEBSOCKET_URL = '{}@depth'.format(WEBSOCKET_BASE_URL)
@@ -30,14 +30,17 @@ CONTENT_TYPE = 'x-www-form-urlencoded'
 
 
 class Endpoints:
-    ACCOUNT_INFO = 'v3/account'
-    TRADE_INFO = 'v3/myTrades'
-    ORDER = 'v3/order'
-    ALL_ORDERS = 'v3/allOrders'
-    OPEN_ORDERS = 'v3/openOrders'
-    TICKER = 'v1/ticker/allPrices'
-    DEPTH = 'v1/depth'
-    KLINES = 'v1/klines'
+    ACCOUNT_INFO = 'api/v3/account'
+    TRADE_INFO = 'api/v3/myTrades'
+    ORDER = 'api/v3/order'
+    ALL_ORDERS = 'api/v3/allOrders'
+    OPEN_ORDERS = 'api/v3/openOrders'
+    TICKER = 'api/v1/ticker/allPrices'
+    DEPTH = 'api/v1/depth'
+    KLINES = 'api/v1/klines'
+    WITHDRAW = 'wapi/v1/withdraw.html'
+    WITHDRAW_HISTORY = 'wapi/v1/getWithdrawHistory.html'
+    DEPOSIT_HISTORY = 'wapi/v1/getDepositHistory.html'
 
 class Sides:
     BUY = 'BUY'
@@ -374,8 +377,8 @@ class BinanceClient(GetLoggerMixin):
             'quantity' : quantity,
             'recvWindow' : 60000
         }
-        return self._make_request(Endpoints.ORDER, verb='post',
-            signed=True, params=params)
+        return self._make_request(Endpoints.ORDER,
+                verb='post', signed=True, params=params)
 
     def place_market_sell(self, symbol, quantity, **kwargs):
         self._logger('place_market_sell').info(f'{symbol}: {quantity}')
@@ -387,8 +390,8 @@ class BinanceClient(GetLoggerMixin):
             'quantity' : quantity,
             'recvWindow' : 60000
         }
-        return self._make_request(Endpoints.ORDER, verb='post',
-                signed=True, params=params)
+        return self._make_request(Endpoints.ORDER,
+                verb='post', signed=True, params=params)
 
     def place_limit_buy(self, symbol, quantity, price, **kwargs):
         self._logger('place_limit_buy').info(f'{symbol}: {quantity} @ {price}')
@@ -405,8 +408,8 @@ class BinanceClient(GetLoggerMixin):
         if 'stop_price' in kwargs:
             params['stopPrice'] = kwargs['stop_price']
 
-        return self._make_request(Endpoints.ORDER, verb='post',
-                signed=True, params=params)
+        return self._make_request(Endpoints.ORDER,
+                verb='post', signed=True, params=params)
 
     def place_limit_sell(self, symbol, quantity, price, **kwargs):
         self._logger('place_limit_sell').info(f'{symbol}: {quantity} @ {price}')
@@ -423,8 +426,69 @@ class BinanceClient(GetLoggerMixin):
         if 'stop_price' in kwargs:
             params['stopPrice'] = kwargs['stop_price']
 
-        return self._make_request(Endpoints.ORDER, verb='post',
-                signed=True, params=params)
+        return self._make_request(Endpoints.ORDER,
+                verb='post', signed=True, params=params)
+
+    def withdraw(self, asset, amount, address, **kwargs):
+        logger = self._logger('withdraw')
+        logger.info(f'{amount} {asset} -> {address}')
+
+        params = {
+            'asset' : asset,
+            'amount' : amount,
+            'address' : address
+        }
+        withdraw = self._make_request(Endpoints.WITHDRAW,
+                verb='post', signed=True, params=params)
+        if not withdraw.get('success'):
+            logger.error('failed request', extra=withdraw)
+            return
+
+        return withdraw['success']
+
+    def get_withdraw_history(self, asset=None, **kwargs):
+        logger = self._logger('get_withdraw_history')
+
+        params = {}
+        if asset:
+            logger.info(asset)
+            params['asset'] = asset
+
+        history = self._make_request(Endpoints.WITHDRAW_HISTORY,
+                verb='post', signed=True, params=params)
+        if not history.get('success'):
+            logger.error('failed request', extra=history)
+            return
+
+        return history['withdrawList']
+
+    def get_deposit_history(self, asset=None, **kwargs):
+        logger = self._logger('get_deposit_history')
+
+        params = {}
+        if asset:
+            logger.info(asset)
+            params['asset'] = asset
+
+        history = self._make_request(Endpoints.DEPOSIT_HISTORY,
+                verb='post', signed=True, params=params)
+        if not history.get('success'):
+            logger.error('failed request', extra=history)
+            return
+
+        """ TODO
+        wait for API fix that enforces the `asset` parameter.
+        Currently it does not, so filter out deposits after
+        the API call returns.
+        """
+        if asset:
+            asset_deposits = []
+            for deposit in history['depositList']:
+                if deposit['asset'] == asset:
+                    asset_deposits.append(deposit)
+            return asset_deposits
+        else:
+            return history['depositList']
 
     def event(self, coro):
         """ Register a callback function on an event.
@@ -435,6 +499,12 @@ class BinanceClient(GetLoggerMixin):
 
           client.on_depth_event
             fires whenever a @depth websocket event is received.
+
+          client.on_klines_ready
+            fires when the initial /klines api call returns
+
+          client.on_klines_event
+            fires whenever a @klines websocket event is received
         """
 
         if not asyncio.iscoroutinefunction(coro):

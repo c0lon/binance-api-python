@@ -18,7 +18,7 @@ from binance.client import (
     )
 
 
-TEST_CONFIG_FILE = 'development.yaml'
+TEST_CONFIG_FILE = 'test_config.yaml'
 
 here = os.path.dirname(os.path.realpath(__file__))
 config_uri = os.path.join(here, TEST_CONFIG_FILE)
@@ -27,6 +27,9 @@ SETTINGS, GLOBAL_CONFIG = configure_app(config_uri=config_uri)
 APIKEY = SETTINGS['apikey']
 APISECRET = SETTINGS['apisecret']
 
+ASSETS = [
+    'ETH',
+]
 SYMBOLS = [
     'ETHBTC',
     'LTCBTC',
@@ -35,6 +38,11 @@ SYMBOLS = [
     'OMGBTC',
     'WTCBTC',
 ]
+
+
+"""
+IDEMPOTENT TESTS
+"""
 
 
 #@pytest.mark.skip
@@ -187,6 +195,78 @@ def test_get_all_orders():
     assert isinstance(open_orders, list)
 
 
+def assert_withdraw(withdraw):
+    assert 'address' in withdraw
+    assert 'amount' in withdraw
+    assert 'applyTime' in withdraw
+    assert 'asset' in withdraw
+    assert 'status' in withdraw
+    if 'successTime' in withdraw:
+        assert isinstance(withdraw['successTime'], int)
+        assert 'txId' in withdraw
+
+
+#@pytest.mark.skip
+def test_get_withdraw_history():
+    client = BinanceClient(APIKEY, APISECRET)
+    history = client.get_withdraw_history()
+    for withdraw in history:
+        assert_withdraw(withdraw)
+
+
+#@pytest.mark.skip
+def test_get_withdraw_history_asset():
+    client = BinanceClient(APIKEY, APISECRET)
+    asset = random.choice(ASSETS)
+
+    history = client.get_withdraw_history(asset)
+    for withdraw in history:
+        assert withdraw['asset'] == asset
+        assert_withdraw(withdraw)
+
+
+def assert_deposit(deposit):
+    assert 'amount' in deposit
+    assert 'asset' in deposit
+    assert 'insertTime' in deposit
+    assert 'status' in deposit
+
+
+#@pytest.mark.skip
+def test_get_deposit_history():
+    client = BinanceClient(APIKEY, APISECRET)
+    history = client.get_deposit_history()
+    for deposit in history:
+        assert_deposit(deposit)
+
+
+#@pytest.mark.skip
+def test_get_deposit_history_asset():
+    client = BinanceClient(APIKEY, APISECRET)
+    asset = random.choice(ASSETS)
+
+    history = client.get_deposit_history(asset)
+    for deposit in history:
+        assert deposit['asset'] == asset
+        assert_deposit(deposit)
+
+
+"""
+ACCOUNT ALTERING TESTS
+"""
+
+
+@pytest.mark.skip
+def test_withdraw():
+    client = BinanceClient(APIKEY, APISECRET)
+    asset = ASSETS[0]
+    amount = 0.01
+    address = ''
+
+    withdraw = client.withdraw(asset, amount, address)
+    assert withdraw
+
+
 @pytest.mark.skip
 def test_place_market_buy():
     client = BinanceClient(APIKEY, APISECRET)
@@ -201,7 +281,7 @@ def test_place_market_buy():
 def test_place_market_sell():
     client = BinanceClient(APIKEY, APISECRET)
     symbol = SYMBOLS[0]
-    quantity = 0.05
+    quantity = 0.01
     response = client.place_market_sell(symbol, quantity)
 
     assert isinstance(response, dict)
