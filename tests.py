@@ -77,31 +77,31 @@ def test_get_ticker_invalid():
         assert False
 
 
-def assert_candlesticks(candlesticks):
-    assert isinstance(candlesticks, list)
-    for candlestick in candlesticks:
-        assert isinstance(candlestick, list)
+def assert_klines(klines):
+    assert isinstance(klines, list)
+    for kline in klines:
+        assert isinstance(kline, list)
 
 
 #@pytest.mark.skip
-def test_get_candlesticks():
+def test_get_klines():
     client = BinanceClient(APIKEY, APISECRET)
     symbol = random.choice(SYMBOLS)
-    candlesticks = client.get_candlesticks(symbol, Intervals.THIRTY_MINUTE)
-    assert_candlesticks(candlesticks)
+    klines = client.get_klines(symbol, Intervals.THIRTY_MINUTE)
+    assert_klines(klines)
 
 
 #@pytest.mark.skip
-def test_get_candlesticks_async():
+def test_get_klines_async():
     client = BinanceClient(APIKEY, APISECRET)
 
-    async def get_candlesticks():
+    async def get_klines():
         symbol = random.choice(SYMBOLS)
-        candlesticks = await client.get_candlesticks_async(symbol, Intervals.ONE_HOUR)
-        assert_candlesticks(candlesticks)
+        klines = await client.get_klines_async(symbol, Intervals.ONE_HOUR)
+        assert_klines(klines)
 
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(get_candlesticks())
+    loop.run_until_complete(get_klines())
 
 
 def assert_depth(depth):
