@@ -3,6 +3,7 @@
 
 
 import asyncio
+import json
 import os
 import pytest
 import random
@@ -95,13 +96,23 @@ def test_get_klines():
 def test_get_klines_async():
     client = BinanceClient(APIKEY, APISECRET)
 
+    async def klines_callback(klines):
+        with open('klines.json', 'w+') as f:
+            json.dump(klines, f)
+
     async def get_klines():
         symbol = random.choice(SYMBOLS)
-        klines = await client.get_klines_async(symbol, Intervals.ONE_HOUR)
+        klines = await client.get_klines_async(symbol,
+                Intervals.ONE_HOUR, callback=klines_callback)
         assert_klines(klines)
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(get_klines())
+
+    with open('klines.json') as f:
+        klines_json = json.load(f)
+    assert_klines(klines_json)
+    os.remove('klines.json')
 
 
 def assert_depth(depth):
@@ -122,14 +133,23 @@ def test_get_depth_data():
 #@pytest.mark.skip
 def test_get_depth_data_async():
     client = BinanceClient(APIKEY, APISECRET)
+
+    async def depth_callback(depth):
+        with open('depth.json', 'w+') as f:
+            json.dump(depth, f)
     
     async def get_depth():
         symbol = random.choice(SYMBOLS)
-        depth = await client.get_depth_async(symbol)
+        depth = await client.get_depth_async(symbol, callback=depth_callback)
         assert_depth(depth)
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(get_depth())
+
+    with open('depth.json') as f:
+        depth_json = json.load(f)
+    assert_depth(depth_json)
+    os.remove('depth.json')
 
 
 #@pytest.mark.skip

@@ -194,10 +194,13 @@ class BinanceClient(GetLoggerMixin):
         self._logger('get_depth').info(symbol)
         return self._make_request(Endpoints.DEPTH, params={'symbol' : symbol})
 
-    async def get_depth_async(self, symbol):
+    async def get_depth_async(self, symbol, **kwargs):
         self._logger('get_depth_async').info(symbol)
-        return await self._make_request_async(Endpoints.DEPTH,
+        depth = await self._make_request_async(Endpoints.DEPTH,
                 params={'symbol': symbol})
+        await self._handle_callback(kwargs.get('callback'), depth)
+
+        return depth
 
     def watch_depth(self, symbol):
         self._logger('watch_depth').info(symbol)
@@ -258,7 +261,8 @@ class BinanceClient(GetLoggerMixin):
         return self._make_request(Endpoints.KLINES, verb='get', params=params)
 
     async def get_klines_async(self, symbol, interval, **kwargs):
-        self._logger('get_klines_async').info(f'{symbol} {interval}')
+        logger = self._logger('get_klines_async')
+        logger.info(f'{symbol} {interval}')
 
         params = {
             'symbol' : symbol,
@@ -270,8 +274,22 @@ class BinanceClient(GetLoggerMixin):
         if 'end_time' in kwargs:
             params['endTime'] = kwargs['end_time']
 
-        return await self._make_request_async(Endpoints.KLINES,
+        klines = await self._make_request_async(Endpoints.KLINES,
                 verb='get', params=params)
+        await self._handle_callback(kwargs.get('callback'), klines)
+
+        return klines
+        
+    async def _handle_callback(self, callback, *values):
+        if not callback:
+            return
+
+        if asyncio.iscoroutinefunction(callback):
+            await callback(*values)
+        elif hasattr(callback, '__call__'):
+            callback(*values)
+        else:
+            logger.error(f'callback function {callback.__name__} must be a function or a coroutine, not "{type(callback).__name__}"')
 
     def watch_klines(self, symbol, interval, **kwargs):
         self._logger('watch_klines').info(f'{symbol} {interval}')
