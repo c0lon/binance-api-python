@@ -17,6 +17,9 @@ from .cache import (
     DepthCache,
     KlineCache,
     )
+from .storage import (
+    Account,
+    )
 from .utils import GetLoggerMixin
 
 
@@ -30,6 +33,8 @@ CONTENT_TYPE = 'x-www-form-urlencoded'
 
 
 class Endpoints:
+    PING = 'api/v1/ping'
+    SERVER_TIME = 'api/v1/time'
     ACCOUNT_INFO = 'api/v3/account'
     TRADE_INFO = 'api/v3/myTrades'
     ORDER = 'api/v3/order'
@@ -42,13 +47,16 @@ class Endpoints:
     WITHDRAW_HISTORY = 'wapi/v1/getWithdrawHistory.html'
     DEPOSIT_HISTORY = 'wapi/v1/getDepositHistory.html'
 
+
 class Sides:
     BUY = 'BUY'
     SELL = 'SELL'
 
+
 class OrderTypes:
     MARKET = 'MARKET'
     LIMIT = 'LIMIT'
+
 
 class OrderStatus:
     NEW = 'NEW'
@@ -59,11 +67,13 @@ class OrderStatus:
     REJECTED = 'REJECTED'
     EXPIRED = 'EXPIRED'
 
+
 class TimeInForce:
     GTC = 'GTC'
     IOC = 'IOC'
 
-class Intervals:
+
+class KlineIntervals:
     ONE_MINUTE = '1m'
     THREE_MINUTE = '3m'
     FIVE_MINUTE = '5m'
@@ -179,6 +189,12 @@ class BinanceClient(GetLoggerMixin):
 
         return '{}?{}&signature={}'.format(
                 url, query_string, signature.hexdigest())
+
+    def ping(self):
+        return self._make_request(Endpoints.PING)
+
+    def get_server_time(self):
+        return self._make_request(Endpoints.SERVER_TIME)
 
     def get_ticker(self, symbol=''):
         self._logger('get_ticker').info(symbol)
@@ -340,7 +356,8 @@ class BinanceClient(GetLoggerMixin):
 
     def get_account_info(self):
         self._logger().info('get_account_info')
-        return self._make_request(Endpoints.ACCOUNT_INFO, signed=True)
+        response = self._make_request(Endpoints.ACCOUNT_INFO, signed=True)
+        return Account(response)
 
     def get_trade_info(self, symbol):
         self._logger('get_trade_info').info(symbol)
