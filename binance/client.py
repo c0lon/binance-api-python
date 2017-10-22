@@ -21,6 +21,7 @@ from .storage import (
     Account,
     Deposit,
     Order,
+    Ticker,
     Trade,
     Withdraw,
     )
@@ -44,7 +45,9 @@ class Endpoints:
     ORDER = 'api/v3/order'
     ALL_ORDERS = 'api/v3/allOrders'
     OPEN_ORDERS = 'api/v3/openOrders'
-    TICKER = 'api/v1/ticker/allPrices'
+    TICKER_ALL = 'api/v1/ticker/allPrices'
+    TICKER_BEST = '/api/v1/ticker/allBookTickers'
+    TICKER_24HR = '/api/v1/ticker/ticker/24hr'
     DEPTH = 'api/v1/depth'
     KLINES = 'api/v1/klines'
     WITHDRAW = 'wapi/v1/withdraw.html'
@@ -161,16 +164,16 @@ class BinanceClient(GetLoggerMixin):
 
     def get_ticker(self, symbol=''):
         self._logger('get_ticker').info(symbol)
-        ticker = self._make_request(Endpoints.TICKER)
+        raw_tickers = self._make_request(Endpoints.TICKER_ALL)
 
         if symbol:
-            for _symbol in ticker:
-                if _symbol['symbol'] == symbol:
-                    return _symbol
+            for raw_ticker in raw_tickers:
+                if raw_ticker['symbol'] == symbol:
+                    return Ticker(raw_ticker)
             else:
-                raise ValueError('invalid symbol: {}'.format(symbol))
-
-        return ticker
+                raise ValueError(f'invalid symbol: {symbol}')
+        else:
+            return [Ticker(rt) for rt in raw_tickers]
 
     def get_depth(self, symbol):
         self._logger('get_depth').info(symbol)

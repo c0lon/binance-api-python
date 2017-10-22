@@ -47,47 +47,50 @@ IDEMPOTENT TESTS
 """
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_ping():
     client = BinanceClient(APIKEY, APISECRET)
     assert client.ping()
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_server_time():
     client = BinanceClient(APIKEY, APISECRET)
     assert isinstance(client.get_server_time(), int)
 
 
-@pytest.mark.skip
-def test_get_ticker_all():
+def assert_ticker(ticker):
+    assert isinstance(ticker, Ticker)
+    assert isinstance(ticker.symbol, str)
+    assert isinstance(ticker.price, float)
+
+
+#@pytest.mark.skip
+def test_get_ticker():
     client = BinanceClient(APIKEY, APISECRET)
-    ticker = client.get_ticker()
+    tickers = client.get_ticker()
 
-    assert isinstance(ticker, list)
-
-    symbols = []
-    for symbol_ticker in ticker:
-        assert isinstance(symbol_ticker, dict)
-        assert isinstance(symbol_ticker['price'], str)
-        symbols.append(symbol_ticker['symbol'])
+    assert isinstance(tickers, list)
+    symbols = set()
+    for ticker in tickers:
+        assert_ticker(ticker)
+        symbols.add(ticker.symbol)
 
     for symbol in SYMBOLS:
         assert symbol in symbols
 
 
-@pytest.mark.skip
-def test_get_ticker():
+#@pytest.mark.skip
+def test_get_ticker_symbol():
     client = BinanceClient(APIKEY, APISECRET)
     symbol = random.choice(SYMBOLS)
     ticker = client.get_ticker(symbol)
 
-    assert isinstance(ticker, dict)
-    assert ticker['symbol'] == symbol
-    assert isinstance(ticker['price'], str)
+    assert ticker.symbol == symbol
+    assert_ticker(ticker)
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_ticker_invalid():
     client = BinanceClient(APIKEY, APISECRET)
     symbol = 'DOGE'
@@ -95,7 +98,7 @@ def test_get_ticker_invalid():
     try:
         ticker = client.get_ticker(symbol)
     except ValueError as e:
-        assert symbol in e.args[0]
+        assert e.args[0] == f'invalid symbol: {symbol}'
     else:
         assert False
 
@@ -106,7 +109,7 @@ def assert_klines(klines):
         assert isinstance(kline, list)
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_klines():
     client = BinanceClient(APIKEY, APISECRET)
     symbol = random.choice(SYMBOLS)
@@ -115,7 +118,7 @@ def test_get_klines():
     assert_klines(klines)
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_klines_async():
     client = BinanceClient(APIKEY, APISECRET)
 
@@ -144,7 +147,7 @@ def assert_depth(depth):
     assert isinstance(depth['asks'], list)
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_depth_data():
     client = BinanceClient(APIKEY, APISECRET)
     symbol = random.choice(SYMBOLS)
@@ -153,7 +156,7 @@ def test_get_depth_data():
     assert_depth(depth)
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_depth_data_async():
     client = BinanceClient(APIKEY, APISECRET)
 
@@ -175,7 +178,7 @@ def test_get_depth_data_async():
     os.remove('depth.json')
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_account_info():
     client = BinanceClient(APIKEY, APISECRET)
     account = client.get_account_info()
@@ -186,7 +189,7 @@ def test_get_account_info():
         assert balance.asset == asset
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_trade_info():
     client = BinanceClient(APIKEY, APISECRET)
     symbol = random.choice(SYMBOLS)
@@ -198,7 +201,7 @@ def test_get_trade_info():
         assert trade.symbol == symbol
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_open_orders():
     client = BinanceClient(APIKEY, APISECRET)
     symbol = random.choice(SYMBOLS)
@@ -210,7 +213,7 @@ def test_get_open_orders():
         assert order.symbol == symbol
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_all_orders():
     client = BinanceClient(APIKEY, APISECRET)
     symbol = random.choice(SYMBOLS)
@@ -230,7 +233,7 @@ def assert_withdraw(withdraw):
         assert withdraw.tx_id
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_withdraw_history():
     client = BinanceClient(APIKEY, APISECRET)
     history = client.get_withdraw_history()
@@ -238,7 +241,7 @@ def test_get_withdraw_history():
         assert_withdraw(withdraw)
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_withdraw_history_asset():
     client = BinanceClient(APIKEY, APISECRET)
     asset = random.choice(ASSETS)

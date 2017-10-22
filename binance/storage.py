@@ -7,6 +7,12 @@ from .enums import (
 from .utils import pp
 
 
+class Ticker:
+    def __init__(self, raw_ticker):
+        self.symbol = raw_ticker['symbol']
+        self.price = float(raw_ticker['price'])
+
+
 class Account:
     def __init__(self, raw_account):
         self.maker_commission = raw_account['makerCommission']
@@ -54,7 +60,7 @@ class Trade:
         self.price = float(raw_trade['price'])
         self.quantity = float(raw_trade['qty'])
         self.commission = float(raw_trade['commission'])
-        self.commission_asset = float(raw_trade['commissionAsset'])
+        self.commission_asset = raw_trade['commissionAsset']
         self.time = raw_trade['time']
         self.isBuyer = raw_trade['isBuyer']
         self.isMaker = raw_trade['isMaker']
