@@ -17,6 +17,9 @@ from .cache import (
     DepthCache,
     KlineCache,
     )
+from .storage import (
+    Account,
+    )
 from .utils import GetLoggerMixin
 
 
@@ -340,7 +343,8 @@ class BinanceClient(GetLoggerMixin):
 
     def get_account_info(self):
         self._logger().info('get_account_info')
-        return self._make_request(Endpoints.ACCOUNT_INFO, signed=True)
+        response = self._make_request(Endpoints.ACCOUNT_INFO, signed=True)
+        return Account(response)
 
     def get_trade_info(self, symbol):
         self._logger('get_trade_info').info(symbol)
