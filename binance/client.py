@@ -19,6 +19,8 @@ from .cache import (
     )
 from .storage import (
     Account,
+    Order,
+    Trade,
     )
 from .utils import GetLoggerMixin
 
@@ -46,49 +48,6 @@ class Endpoints:
     WITHDRAW = 'wapi/v1/withdraw.html'
     WITHDRAW_HISTORY = 'wapi/v1/getWithdrawHistory.html'
     DEPOSIT_HISTORY = 'wapi/v1/getDepositHistory.html'
-
-
-class Sides:
-    BUY = 'BUY'
-    SELL = 'SELL'
-
-
-class OrderTypes:
-    MARKET = 'MARKET'
-    LIMIT = 'LIMIT'
-
-
-class OrderStatus:
-    NEW = 'NEW'
-    CANCELED = 'CANCELED'
-    PARTIALLY_FILLED = 'PARTIALLY_FILLED'
-    FILLED = 'FILLED'
-    PENDING_CANCEL = 'PENDING_CANCEL'
-    REJECTED = 'REJECTED'
-    EXPIRED = 'EXPIRED'
-
-
-class TimeInForce:
-    GTC = 'GTC'
-    IOC = 'IOC'
-
-
-class KlineIntervals:
-    ONE_MINUTE = '1m'
-    THREE_MINUTE = '3m'
-    FIVE_MINUTE = '5m'
-    FIFTEEN_MINUTE = '15m'
-    THIRTY_MINUTE = '30m'
-    ONE_HOUR = '1h'
-    TWO_HOUR = '2h'
-    FOUR_HOUR = '4h'
-    SIX_HOUR = '6h'
-    EIGHT_HOUR = '8h'
-    TWELVE_HOUR = '12h'
-    ONE_DAY = '1d'
-    THREE_DAY = '3d'
-    ONE_WEEK_ = '1w'
-    ONE_MONTH = '1M'
 
 
 class BinanceClient(GetLoggerMixin):
@@ -363,22 +322,41 @@ class BinanceClient(GetLoggerMixin):
 
     def get_trade_info(self, symbol):
         self._logger('get_trade_info').info(symbol)
-        return self._make_request(Endpoints.TRADE_INFO, signed=True,
+        response = self._make_request(Endpoints.TRADE_INFO, signed=True,
                 params={'symbol' : symbol})
+
+        trade_info = []
+        for trade in response:
+            trade_info.append(Trade(symbol, trade))
+
+        return trade_info
+        
 
     def get_open_orders(self, symbol):
         self._logger('get_open_orders').info(symbol)
-        return self._make_request(Endpoints.OPEN_ORDERS, signed=True,
+        response = self._make_request(Endpoints.OPEN_ORDERS, signed=True,
                 params={'symbol' : symbol})
+
+        orders = []
+        for order in response:
+            orders.append(Order(order))
+
+        return orders
 
     def get_all_orders(self, symbol):
         self._logger('get_all_orders').info(symbol)
-        return self._make_request(Endpoints.ALL_ORDERS, signed=True,
+        response = self._make_request(Endpoints.ALL_ORDERS, signed=True,
                 params={'symbol' : symbol})
+
+        orders = []
+        for order in response:
+            orders.append(Order(order))
+
+        return orders
 
     def get_order_status(self, symbol, order_id):
         self._logger('get_order_status').info(f'{symbol}: {order_id}')
-        return self._make_request(Endpoints.ORDER, signed=True,
+        response = self._make_request(Endpoints.ORDER, signed=True,
                 params={'symbol' : symbol, 'orderId' : order_id})
 
     def cancel_order(self, symbol, order_id):
@@ -391,7 +369,7 @@ class BinanceClient(GetLoggerMixin):
 
         params = {
             'symbol' : symbol,
-            'side' : Sides.BUY,
+            'side' : OrderSides.BUY,
             'type' : OrderTypes.MARKET,
             'quantity' : quantity,
             'recvWindow' : 60000
@@ -404,7 +382,7 @@ class BinanceClient(GetLoggerMixin):
 
         params = {
             'symbol' : symbol,
-            'side' : Sides.SELL,
+            'side' : OrderSides.SELL,
             'type' : OrderTypes.MARKET,
             'quantity' : quantity,
             'recvWindow' : 60000
@@ -417,7 +395,7 @@ class BinanceClient(GetLoggerMixin):
 
         params = {
             'symbol' : symbol,
-            'side' : Sides.BUY,
+            'side' : OrderSides.BUY,
             'type' : OrderTypes.LIMIT,
             'timeInForce' : kwargs.get('time_in_force', TimeInForce.GTC),
             'quantity' : quantity,
@@ -435,7 +413,7 @@ class BinanceClient(GetLoggerMixin):
 
         params = {
             'symbol' : symbol,
-            'side' : Sides.SELL,
+            'side' : OrderSides.SELL,
             'type' : OrderTypes.LIMIT,
             'timeInForce' : kwargs.get('time_in_force', TimeInForce.GTC),
             'quantity' : quantity,

@@ -12,7 +12,7 @@ from binance import (
     BinanceClient,
     configure_app,
     )
-from binance.client import (
+from binance.enums import (
     KlineIntervals,
     OrderStatus,
     )
@@ -46,13 +46,13 @@ IDEMPOTENT TESTS
 """
 
 
-#@pytest.mark.skip
+@pytest.mark.skip
 def test_ping():
     client = BinanceClient(APIKEY, APISECRET)
     assert client.ping()
 
 
-#@pytest.mark.skip
+@pytest.mark.skip
 def test_get_server_time():
     client = BinanceClient(APIKEY, APISECRET)
     assert isinstance(client.get_server_time(), int)
@@ -192,24 +192,33 @@ def test_get_trade_info():
     trade_info = client.get_trade_info(symbol)
 
     assert isinstance(trade_info, list)
+    for trade in trade_info:
+        assert isinstance(trade, Trade)
+        assert trade.symbol == symbol
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_open_orders():
     client = BinanceClient(APIKEY, APISECRET)
     symbol = random.choice(SYMBOLS)
     open_orders = client.get_open_orders(symbol)
 
     assert isinstance(open_orders, list)
+    for order in open_orders:
+        assert isinstance(order, Order)
+        assert order.symbol == symbol
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_all_orders():
     client = BinanceClient(APIKEY, APISECRET)
     symbol = random.choice(SYMBOLS)
-    open_orders = client.get_all_orders(symbol)
+    orders = client.get_all_orders(symbol)
 
-    assert isinstance(open_orders, list)
+    assert isinstance(orders, list)
+    for order in orders:
+        assert isinstance(order, Order)
+        assert order.symbol == symbol
 
 
 def assert_withdraw(withdraw):
