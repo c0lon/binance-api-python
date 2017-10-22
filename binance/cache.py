@@ -4,6 +4,10 @@
 
 from collections import deque
 
+from .storage import (
+    Bid,
+    Ask,
+    )
 from .utils import GetLoggerMixin
 
 
@@ -18,15 +22,6 @@ class DepthCache(GetLoggerMixin):
         self.event_queue = deque()
         self.last_update_id = -1
 
-    def update(self, event):
-        if not self.received_api_response:
-            self.event_queue.append(event)
-        else:
-            self._update(event)
-
-    def _transform_depth(self, depth):
-        return {price: quantity for price, quantity, _ in depth}
-
     def _update(self, event):
         logger = self._logger('_update')
 
@@ -34,31 +29,39 @@ class DepthCache(GetLoggerMixin):
         logger.debug(event['u'])
 
         self.last_update_id = event['u']
-        event_bids = self._transform_depth(event['b'])
-        event_asks = self._transform_depth(event['a'])
+        event_bids = {b[0]: Bid(b) for b in event['bids']}
+        event_asks = {a[0]: Ask(a) for a in event['asks']}
 
         updated_bids = []
-        for bid_price, bid_quantity in self.bids:
-            updated_bid_quantity = event_bids.get(bid_price, bid_quantity)
-            if not float(updated_bid_quantity): continue
-            updated_bids.append([bid_price, updated_bid_quantity])
+        for bid in self.bids:
+            event_bid = event_bids.get(bid.price)
+            if not event_bid:
+                updated_asks.append(ask)
+            elif not event_bid.quantity:
+                continue
+            else:
+                updates_bids.append(event_bid)
         self.bids = updated_bids
 
         updated_asks = []
-        for ask_price, ask_quantity in self.asks:
-            updated_ask_quantity = event_asks.get(ask_price, ask_quantity)
-            if not float(updated_ask_quantity): continue
-            updated_asks.append([ask_price, updated_ask_quantity])
+        for ask in self.asks:
+            event_ask = event_asks.get(ask.price)
+            if not event_ask:
+                updated_asks.append(ask)
+            elif not event_ask.quantity:
+                continue
+            else:
+                updated_asks.append(ask)
         self.asks = updated_asks
 
     def set_initial_data(self, depth):
         logger = self._logger('set_initial_data')
 
-        self.last_update_id = depth['lastUpdateId']
+        self.last_update_id = depth.update_id
         logger.debug(f'set_initial_data: {self.last_update_id}')
 
-        self.bids = [b[:2] for b in depth['bids']]
-        self.asks = [a[:2] for a in depth['asks']]
+        self.bids = depth.bids
+        self.asks = depth.asks
         while self.event_queue:
             event = self.event_queue.popleft()
             self._update(event)
@@ -67,20 +70,19 @@ class DepthCache(GetLoggerMixin):
 
     def pretty_print(self, depth=40):
         if depth:
-            d = int(depth/2)
-            bids = self.bids[:d]
-            asks = self.asks[-d:]
+            bids = self.bids[:depth]
+            asks = self.asks[:depth]
         else:
             bids = self.bids
             asks = self.asks
 
         print('Bids')
-        for bid_price, bid_quantity in bids:
-            print(f'{float(bid_price):12f} : {float(bid_quantity):12f}')
+        for bid in bids:
+            print(f'{bid.price:12f} : {bid.quantity:12f}')
 
         print('\nAsks')
-        for ask_price, ask_quantity in asks:
-            print(f'{float(ask_price):12f} : {float(ask_quantity):12f}')
+        for ask in asks:
+            print(f'{ask.price:12f} : {ask.quantity:12f}')
         print()
 
 

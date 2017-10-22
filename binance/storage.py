@@ -67,6 +67,46 @@ class Trade:
         self.isBestMatch = raw_trade['isBestMatch']
 
 
+class Depth:
+    def __init__(self, symbol, raw_depth):
+        self.symbol = symbol
+        self.update_id = raw_depth['lastUpdateId']
+        self.bids = [Bid(b) for b in raw_depth['bids']]
+        self.asks = [Ask(a) for a in raw_depth['asks']]
+
+    def to_json(self):
+        return {
+            'symbol' : self.symbol,
+            'update_id' : self.update_id,
+            'bids' : [b.to_json() for b in self.bids],
+            'asks' : [a.to_json() for a in self.asks]
+        }
+
+
+class Bid:
+    def __init__(self, raw_bid):
+        self.price = float(raw_bid[0])
+        self.quantity = float(raw_bid[1])
+
+    def to_json(self):
+        return {
+            'price' : self.price,
+            'quantity' : self.quantity
+        }
+
+
+class Ask:
+    def __init__(self, raw_ask):
+        self.price = float(raw_ask[0])
+        self.quantity = float(raw_ask[1])
+
+    def to_json(self):
+        return {
+            'price' : self.price,
+            'quantity' : self.quantity
+        }
+
+
 class Deposit:
     def __init__(self, raw_deposit):
         self.asset = raw_deposit['asset']

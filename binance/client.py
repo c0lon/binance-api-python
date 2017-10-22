@@ -20,6 +20,7 @@ from .cache import (
 from .storage import (
     Account,
     Deposit,
+    Depth,
     Order,
     Ticker,
     Trade,
@@ -177,12 +178,16 @@ class BinanceClient(GetLoggerMixin):
 
     def get_depth(self, symbol):
         self._logger('get_depth').info(symbol)
-        return self._make_request(Endpoints.DEPTH, params={'symbol' : symbol})
+        depth = self._make_request(Endpoints.DEPTH, params={'symbol' : symbol})
+
+        return Depth(symbol, depth)
 
     async def get_depth_async(self, symbol, **kwargs):
         self._logger('get_depth_async').info(symbol)
-        depth = await self._make_request_async(Endpoints.DEPTH,
+        raw_depth = await self._make_request_async(Endpoints.DEPTH,
                 params={'symbol': symbol})
+
+        depth = Depth(symbol, raw_depth)
         await self._handle_callback(kwargs.get('callback'), depth)
 
         return depth
@@ -223,7 +228,7 @@ class BinanceClient(GetLoggerMixin):
 
             if hasattr(self, 'on_depth_ready'):
                 logger.debug('on_depth_ready')
-                await self.on_depth_ready()
+                await self.on_depth_ready(depth)
 
         self._loop.run_until_complete(asyncio.gather(
             _watch_for_depth_events(),
