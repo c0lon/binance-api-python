@@ -3,6 +3,7 @@
 
 
 import asyncio
+from datetime import datetime
 import json
 import os
 import pytest
@@ -197,7 +198,7 @@ def test_get_trade_info():
         assert trade.symbol == symbol
 
 
-#@pytest.mark.skip
+@pytest.mark.skip
 def test_get_open_orders():
     client = BinanceClient(APIKEY, APISECRET)
     symbol = random.choice(SYMBOLS)
@@ -209,7 +210,7 @@ def test_get_open_orders():
         assert order.symbol == symbol
 
 
-#@pytest.mark.skip
+@pytest.mark.skip
 def test_get_all_orders():
     client = BinanceClient(APIKEY, APISECRET)
     symbol = random.choice(SYMBOLS)
@@ -222,14 +223,11 @@ def test_get_all_orders():
 
 
 def assert_withdraw(withdraw):
-    assert 'address' in withdraw
-    assert 'amount' in withdraw
-    assert 'applyTime' in withdraw
-    assert 'asset' in withdraw
-    assert 'status' in withdraw
-    if 'successTime' in withdraw:
-        assert isinstance(withdraw['successTime'], int)
-        assert 'txId' in withdraw
+    assert isinstance(withdraw, Withdraw)
+    assert isinstance(withdraw.apply_time, datetime)
+    if withdraw.success_time:
+        assert isinstance(withdraw.success_time, datetime)
+        assert withdraw.tx_id
 
 
 @pytest.mark.skip
@@ -247,18 +245,17 @@ def test_get_withdraw_history_asset():
 
     history = client.get_withdraw_history(asset)
     for withdraw in history:
-        assert withdraw['asset'] == asset
+        assert withdraw.asset == asset
         assert_withdraw(withdraw)
 
 
 def assert_deposit(deposit):
-    assert 'amount' in deposit
-    assert 'asset' in deposit
-    assert 'insertTime' in deposit
-    assert 'status' in deposit
+    assert isinstance(deposit, Deposit)
+    if deposit.insert_time:
+        assert isinstance(deposit.insert_time, datetime)
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_deposit_history():
     client = BinanceClient(APIKEY, APISECRET)
     history = client.get_deposit_history()
@@ -266,14 +263,14 @@ def test_get_deposit_history():
         assert_deposit(deposit)
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_deposit_history_asset():
     client = BinanceClient(APIKEY, APISECRET)
     asset = random.choice(ASSETS)
 
     history = client.get_deposit_history(asset)
     for deposit in history:
-        assert deposit['asset'] == asset
+        assert deposit.asset == asset
         assert_deposit(deposit)
 
 

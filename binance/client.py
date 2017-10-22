@@ -19,8 +19,10 @@ from .cache import (
     )
 from .storage import (
     Account,
+    Deposit,
     Order,
     Trade,
+    Withdraw,
     )
 from .utils import GetLoggerMixin
 
@@ -457,7 +459,11 @@ class BinanceClient(GetLoggerMixin):
             logger.error('failed request', extra=history)
             return
 
-        return history['withdrawList']
+        withdraws = []
+        for withdraw in history['withdrawList']:
+            withdraws.append(Withdraw(withdraw))
+
+        return withdraws
 
     def get_deposit_history(self, asset=None, **kwargs):
         logger = self._logger('get_deposit_history')
@@ -478,14 +484,15 @@ class BinanceClient(GetLoggerMixin):
         Currently it does not, so filter out deposits after
         the API call returns.
         """
+        deposits = []
         if asset:
-            asset_deposits = []
             for deposit in history['depositList']:
                 if deposit['asset'] == asset:
-                    asset_deposits.append(deposit)
-            return asset_deposits
+                    deposits.append(deposit)
         else:
-            return history['depositList']
+            deposits = history['depositList']
+
+        return [Deposit(d) for d in deposits]
 
     def event(self, coro):
         """ Register a callback function on an event.

@@ -1,7 +1,10 @@
+from datetime import datetime
+
 from .enums import (
     OrderSides,
     OrderTypes,
     )
+from .utils import pp
 
 
 class Account:
@@ -43,22 +46,6 @@ class Order:
         self.icebergQuantity = float(raw_order['icebergQty']) or None
         self.time = raw_order['time']
 
-'''
-"symbol": "LTCBTC",
-"orderId": 1,
-"clientOrderId": "myOrder1",
-"price": "0.1",
-"origQty": "1.0",
-"executedQty": "0.0",
-"status": "NEW",
-"timeInForce": "GTC",
-"type": "LIMIT",
-"side": "BUY",
-"stopPrice": "0.0",
-"icebergQty": "0.0",
-"time": 1499827319559
-'''
-
 
 class Trade:
     def __init__(self, symbol, raw_trade):
@@ -76,9 +63,26 @@ class Trade:
 
 class Deposit:
     def __init__(self, raw_deposit):
-        pass
+        self.asset = raw_deposit['asset']
+        self.amount = raw_deposit['amount']
+        self.status = raw_deposit['status']
+
+        self.insert_time = raw_deposit.get('insertTime')
+        if self.insert_time:
+            self.insert_time = datetime.fromtimestamp(self.insert_time / 1000)
 
 
 class Withdraw:
     def __init__(self, raw_withdraw):
-        pass
+        self.asset = raw_withdraw['asset']
+        self.status = raw_withdraw['status']
+        self.amount = raw_withdraw['amount']
+        self.address = raw_withdraw['address']
+        self.tx_id = raw_withdraw.get('txId')
+
+        apply_time = raw_withdraw['applyTime'] / 1000
+        self.apply_time = datetime.fromtimestamp(apply_time)
+
+        self.success_time = raw_withdraw.get('successTime')
+        if self.success_time:
+            self.success_time = datetime.fromtimestamp(self.success_time / 1000)
