@@ -259,8 +259,8 @@ ACCOUNT ALTERING TESTS
 @pytest.mark.skip
 def test_withdraw():
     client = BinanceClient(APIKEY, APISECRET)
-    asset = ASSETS[0]
-    amount = 0.01
+    asset = ''
+    amount = 0.0
     address = ''
 
     withdraw = client.withdraw(asset, amount, address)
@@ -270,8 +270,8 @@ def test_withdraw():
 @pytest.mark.skip
 def test_place_market_buy():
     client = BinanceClient(APIKEY, APISECRET)
-    symbol = SYMBOLS[0]
-    quantity = 0.5
+    symbol = ''
+    quantity = 0.0
     response = client.place_market_buy(symbol, quantity)
 
     assert isinstance(response, dict)
@@ -280,8 +280,8 @@ def test_place_market_buy():
 @pytest.mark.skip
 def test_place_market_sell():
     client = BinanceClient(APIKEY, APISECRET)
-    symbol = SYMBOLS[0]
-    quantity = 0.01
+    symbol = ''
+    quantity = 0.0
     response = client.place_market_sell(symbol, quantity)
 
     assert isinstance(response, dict)
@@ -290,9 +290,9 @@ def test_place_market_sell():
 @pytest.mark.skip
 def test_place_limit_buy():
     client = BinanceClient(APIKEY, APISECRET)
-    symbol = SYMBOLS[0]
-    quantity = 1.0
-    price = 0.001
+    symbol = ''
+    quantity = 0.0
+    price = 0.0
     response = client.place_limit_buy(symbol, quantity, price)
 
     assert isinstance(response, dict)
@@ -301,9 +301,9 @@ def test_place_limit_buy():
 @pytest.mark.skip
 def test_place_limit_sell():
     client = BinanceClient(APIKEY, APISECRET)
-    symbol = SYMBOLS[0]
-    quantity = 0.05
-    price = 1.0
+    symbol = ''
+    quantity = 0.0
+    price = 0.0
     response = client.place_limit_sell(symbol, quantity, price)
 
     assert isinstance(response, dict)
@@ -312,9 +312,9 @@ def test_place_limit_sell():
 @pytest.mark.skip
 def test_check_order_status_and_cancel():
     client = BinanceClient(APIKEY, APISECRET)
-    symbol = SYMBOLS[0]
-    quantity = 0.05
-    price = 1.0
+    symbol = ''
+    quantity = 0.0
+    price = 0.0
     order_response = client.place_limit_sell(symbol, quantity, price)
     order_id = order_response['orderId']
 
