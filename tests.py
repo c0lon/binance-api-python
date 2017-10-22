@@ -55,7 +55,7 @@ def test_ping():
 #@pytest.mark.skip
 def test_get_server_time():
     client = BinanceClient(APIKEY, APISECRET)
-    assert client.get_server_time()
+    assert isinstance(client.get_server_time(), int)
 
 
 @pytest.mark.skip

@@ -191,10 +191,12 @@ class BinanceClient(GetLoggerMixin):
                 url, query_string, signature.hexdigest())
 
     def ping(self):
-        return self._make_request(Endpoints.PING)
+        self._make_request(Endpoints.PING)
+        return True
 
     def get_server_time(self):
-        return self._make_request(Endpoints.SERVER_TIME)
+        server_time = self._make_request(Endpoints.SERVER_TIME)
+        return server_time['serverTime']
 
     def get_ticker(self, symbol=''):
         self._logger('get_ticker').info(symbol)
