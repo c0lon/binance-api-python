@@ -9,17 +9,16 @@ import os
 import pytest
 import random
 
-from binance.enums import (
-    CandlestickIntervals,
-    OrderStatus,
-    )
-from binance.storage import *
-
 from . import (
     ASSETS,
     CLIENT,
     SYMBOLS,
     )
+from binance.enums import (
+    CandlestickIntervals,
+    OrderStatus,
+    )
+from binance.storage import *
 
 
 #@pytest.mark.skip
