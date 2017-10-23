@@ -17,6 +17,11 @@ from .cache import (
     DepthCache,
     CandlestickCache,
     )
+from .enums import (
+    OrderSides,
+    OrderTypes,
+    TimeInForce,
+    )
 from .storage import (
     Account,
     Candlestick,
@@ -357,7 +362,7 @@ class BinanceClient(GetLoggerMixin):
 
     def get_order_status(self, symbol, order_id):
         self._logger('get_order_status').info(f'{symbol}: {order_id}')
-        response = self._make_request(Endpoints.ORDER, signed=True,
+        return self._make_request(Endpoints.ORDER, signed=True,
                 params={'symbol' : symbol, 'orderId' : order_id})
 
     def cancel_order(self, symbol, order_id):

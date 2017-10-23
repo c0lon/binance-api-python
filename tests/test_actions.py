@@ -17,9 +17,12 @@ are okay with the results.
 """
 
 
+import time
+
 import pytest
 
 from . import CLIENT
+from binance.enums import OrderStatus
 
 
 """
@@ -39,7 +42,7 @@ CONSIDERATIONS:
     your account, or the test will fail.
 """
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_withdraw():
     asset = ''
     amount = 0.0
@@ -94,7 +97,7 @@ CONSIDERATIONS:
     Make sure you are okay with this.
 """
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_place_market_sell():
     symbol = ''
     quantity = 0.0
@@ -120,9 +123,12 @@ CONSIDERATIONS:
     
     Otherwise, make sure you have enough funds to handle the
     transaction. If not, the test will fail.
+
+    If the test succeeds, be sure to cancel the order
+    if you don't want it to be filled.
 """
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_place_limit_buy():
     symbol = ''
     quantity = 0.0
@@ -149,9 +155,12 @@ CONSIDERATIONS:
     
     Otherwise, make sure you have enough funds to handle the
     transaction. If not, the test will fail.
+
+    If the test succeeds, be sure to cancel the order
+    if you don't want it to be filled.
 """
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_place_limit_sell():
     symbol = ''
     quantity = 0.0
@@ -188,7 +197,7 @@ CONSIDERATIONS:
     the test will fail.
 """
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_check_order_status_and_cancel():
     symbol = ''
     quantity = 0.0
@@ -196,6 +205,8 @@ def test_check_order_status_and_cancel():
 
     order_response = CLIENT.place_limit_sell(symbol, quantity, price)
     order_id = order_response['orderId']
+
+    time.sleep(1)
 
     order_status_response = CLIENT.get_order_status(symbol, order_id)
     assert order_status_response['orderId'] == order_id
