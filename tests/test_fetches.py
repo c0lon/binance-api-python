@@ -16,8 +16,6 @@ from binance.enums import (
 from binance.storage import *
 
 from . import (
-    APIKEY,
-    APISECRET,
     ASSETS,
     CLIENT,
     SYMBOLS,

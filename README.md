@@ -1,32 +1,62 @@
 # binance
 
-Client for the [Binance API](https://www.binance.com/restapipub.html).
+Python client for the [Binance API](https://www.binance.com/restapipub.html).
+
+Requires python 3.5 or greater.
 
 ## Installation
+
 ```
 git clone https://github.com/c0lon/binance.git
 cd binance
 python setup.py install
 ```
 
-Requires python 3.5 or greater.
+## Tests
 
-## Goals
+First, enter your API key and secret into
+[tests/config.yaml](tests/config.yaml).
+Then run the command below:
 
-Build API clients with the following features:
-- [x] Follow latest api documentation
-- [x] Getting latest price of a symbol
-- [x] Getting depth of a symbol or maintain a depth cache locally
-- [x] Placing a LIMIT order
-- [x] Placing a MARKET order
-- [x] Checking an order’s status
-- [x] Cancelling an order
-- [x] Getting list of open orders
-- [x] Getting list of current position
+`python setup.py test`
+
+Any log messages are written to `tests/test.log`.
+
+To enter a `pdb` shell on a test failure, run
+
+`pytest --pdb`
+
+See the [pytest docs](https://docs.pytest.org/en/latest/contents.html)
+for more information.
+
+### Enabling all tests
+
+By default, tests for functions which aim to change the state
+of your account are disabled. To enable them, edit
+[pytest.ini](pytest.ini) by changing
+
+```
+[pytest]
+testpaths = tests/test_fetchers.py
+```
+
+to
+
+```
+[pytest]
+testpaths = tests
+```
+
+then follow the instructions in (tests/test_actions.py)[tests/test_actions.py].
+
+### WARNING
+
+Enabling these tests means that your account balances will be changed
+if the tests are successful. Follow the configuration instructions
+**very carefully.** Failing to do so could result in the tests altering
+your account in a negative way.
 
 ## Usage
-
-`python setup.py install`
 
 ```python
 from binance import BinanceClient
@@ -50,7 +80,7 @@ use the asynchronous `watch_depth()` method.
 
 ```
 usage: watchdepth [-h] [--log-level {DEBUG,INFO,WARN,ERROR,CRITICAL}]
-                  [--version] [--debug]
+                  [--version] [--debug] [-l DEPTH_LIMIT]
                   config_uri symbol
 
 positional arguments:
@@ -62,23 +92,25 @@ optional arguments:
   --log-level {DEBUG,INFO,WARN,ERROR,CRITICAL}
   --version             Show the package version and exit.
   --debug
+  -l DEPTH_LIMIT, --depth-limit DEPTH_LIMIT
+                        show the <DEPTH> latest orders on each side.
 ```
 
 
-### watchklines
+### watchcandlesticks
 
-See [watch_klines.py](scripts/watch_klines.py) for an example of how to
-use the asynchronous `watch_klines()` method.
+See [watch_candlesticks.py](scripts/watch_candlesticks.py) for an example of how to
+use the asynchronous `watch_candlesticks()` method.
 
 ```
-usage: watchklines [-h] [--log-level {DEBUG,INFO,WARN,ERROR,CRITICAL}]
-                   [--version] [--debug] [-d DEPTH]
-                   config_uri symbol interval
+usage: watchcandlesticks [-h] [--log-level {DEBUG,INFO,WARN,ERROR,CRITICAL}]
+                         [--version] [--debug] [-d DEPTH]
+                         config_uri symbol interval
 
 positional arguments:
   config_uri            the config file to use.
-  symbol                watch the klines of symbol <SYMBOL>.
-  interval              set the klines interval.
+  symbol                watch the candlesticks of symbol <SYMBOL>.
+  interval              set the candlesticks interval.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -86,5 +118,5 @@ optional arguments:
   --version             Show the package version and exit.
   --debug
   -d DEPTH, --depth DEPTH
-                        display the <DEPTH> latest klines.
+                        display the <DEPTH> latest candlesticks.
 ```

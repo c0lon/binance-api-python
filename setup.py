@@ -14,6 +14,9 @@ with open(os.path.join(here, 'VERSION')) as f:
     VERSION = f.read().strip()
 
 dependency_links = []
+setup_requires = [
+    'pytest-runner',
+]
 install_requires = [
     'aiohttp',
     'pyyaml',
@@ -41,6 +44,7 @@ setup(name='binance',
       author='c0lon',
       author_email='',
       dependency_links=dependency_links,
+      setup_requires=setup_requires,
       install_requires=install_requires,
       test_requires=test_requires,
       packages=find_packages(),
