@@ -504,10 +504,10 @@ class BinanceClient(GetLoggerMixin):
           client.on_depth_event
             fires whenever a @depth websocket event is received.
 
-          client.on_klines_ready
+          client.on_candlesticks_ready
             fires when the initial /klines api call returns
 
-          client.on_klines_event
+          client.on_candlesticks_event
             fires whenever a @klines websocket event is received
         """
 

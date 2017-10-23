@@ -51,6 +51,7 @@ then follow the instructions in (tests/test_actions.py)[tests/test_actions.py].
 
 ### WARNING
 
+
 Enabling these tests means that your account balances will be changed
 if the tests are successful. Follow the configuration instructions
 **very carefully.** Failing to do so could result in the tests altering
@@ -65,6 +66,7 @@ client = BinanceClient(apikey, apisecret)
 client.ping()
 ```
 
+
 ### Client Methods
 
 Methods with names ending with `_async` are asynchronous `coroutines`
@@ -72,7 +74,7 @@ that perform the same action as their synchronous counterpart.
 (Read more about Python's asynchronous features
 [here](https://docs.python.org/3/library/asyncio.html).)
 
-#### Public Endpoints
+#### Public Endpoint Methods
 
 ##### `/ping`
 
@@ -106,9 +108,86 @@ def get_candlesticks(self, symbol, interval, **kwargs)
 async def get_candlesticks_async(self, symbol, interval, **kwargs)
 ```
 
-#### Signed Endpoints
+#### Signed Endpoint Methods
 
-#### Websocket Endpoints
+##### `/myTrades`
+```
+def get_trade_info(self, symbol)
+```
+
+##### `/openOrders`
+```
+def get_open_orders(self, symbol)
+```
+
+##### `/allOrders`
+```
+def get_all_orders(self, symbol):
+```
+
+##### `/order`
+```
+def get_order_status(self, symbol, order_id)
+```
+```
+def place_market_buy(self, symbol, quantity, **kwargs)
+```
+```
+def place_market_sell(self, symbol, quantity, **kwargs)
+```
+```
+def place_limit_buy(self, symbol, quantity, price, **kwargs)
+```
+```
+def place_limit_sell(self, symbol, quantity, price, **kwargs)
+```
+
+##### `/withdraw`
+```
+def withdraw(self, asset, amount, address, **kwargs)
+```
+
+##### `/withdrawHistory.html`
+```
+def get_withdraw_history(self, asset='', **kwargs)
+```
+
+##### `/depositHistory.html`
+```
+def get_deposit_history(self, asset='', **kwargs)
+```
+
+#### Websocket Endpoint Methods
+
+##### `@depth`
+```
+def watch_depth(self, symbol)
+```
+See [watch_depth.py](scripts/watch_depth.py) for an example of how to
+use the asynchronous `watch_depth()` method.
+
+##### `@kline`
+```
+def watch_candlesticks(self, symbol)
+```
+See [watch_candlesticks.py](scripts/watch_candlesticks.py) for an
+example of how to use the asynchronous `watch_candlesticks()` method.  
+
+#### Event Callback Methods
+```
+def event(self, coro)
+```
+Register an asynchronous `coroutine` that is fired on certain client
+events.
+
+Supported Events:
+* `on_depth_ready`
+* `on_depth_event`
+* `on_candlesticks_ready`
+* `on_candlesticks_event`
+
+See [scripts/watch_depth.py](scripts/watch_depth.py) and [scripts/watch_candlesticks.py](scripts/watch_candlesticks.py) for examples.
+
 
 ### Scripts
 
@@ -116,13 +195,7 @@ In order for the scripts below to work correctly, you must put your
 `apiKey` and `secretKey` into the `apikey` and `apisecret` slots
 in [config.yaml](config.yaml), respectively.
 
-### watchdepth
-
-See [watch_depth.py](scripts/watch_depth.py) for an example of how to
-use the asynchronous `watch_depth()` method.
-
-`watchdepth config.ini <SYMBOL>`
-
+#### [watchdepth](scripts/watch_depth.py)
 ```
 usage: watchdepth [-h] [--log-level {DEBUG,INFO,WARN,ERROR,CRITICAL}]
                   [--version] [--debug] [-l DEPTH_LIMIT]
@@ -141,12 +214,7 @@ optional arguments:
                         show the <DEPTH> latest orders on each side.
 ```
 
-
-### watchcandlesticks
-
-See [watch_candlesticks.py](scripts/watch_candlesticks.py) for an example of how to
-use the asynchronous `watch_candlesticks()` method.
-
+#### [watchcandlesticks](scripts/watch_candlesticks.py)
 ```
 usage: watchcandlesticks [-h] [--log-level {DEBUG,INFO,WARN,ERROR,CRITICAL}]
                          [--version] [--debug] [-d DEPTH]
