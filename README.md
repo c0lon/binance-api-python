@@ -16,7 +16,7 @@ python setup.py install
 ## Tests
 
 First, enter your API key and secret into
-[tests/config.yaml](tests/config.yaml).
+[config.yaml](config.yaml).
 Then run the command below:
 
 `python setup.py test`
