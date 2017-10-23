@@ -1,6 +1,6 @@
 main:
-  apikey: 03gU9TCQ6OSF32O4SKm8ZdwZ7Eu48ZoEkWwESPcpPvQFgap5hjmsTQT3PDRUd7Be
-  apisecret: UrOdyK6gmDlv8rWJovsHcmIahlsdp5RXgRC6AWoTL5d9EeDznxpu2KpHleQyWqFi
+  apikey: 
+  apisecret: 
 
 logging:
   version: 1
