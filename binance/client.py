@@ -449,7 +449,7 @@ class BinanceClient(GetLoggerMixin):
 
         return response['success']
 
-    def get_withdraw_history(self, asset=None, **kwargs):
+    def get_withdraw_history(self, asset='', **kwargs):
         logger = self._logger('get_withdraw_history')
 
         params = {}
@@ -465,7 +465,7 @@ class BinanceClient(GetLoggerMixin):
 
         return [Withdraw(withdraw) for withdraw in response['withdrawList']]
 
-    def get_deposit_history(self, asset=None, **kwargs):
+    def get_deposit_history(self, asset='', **kwargs):
         logger = self._logger('get_deposit_history')
 
         params = {}
