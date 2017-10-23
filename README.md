@@ -88,27 +88,27 @@ def ping()
 ```
 def get_server_time()
 ```
+Returns the server time in milliseconds as an integer.
 
 ##### `/ticker`
 ```
 def get_ticker(self, symbol='')
 ```
+Returns a `binance.storage.Ticker` object.
 
 ##### `/depth`
 ```
 def get_depth(self, symbol)
-```
-```
 async def get_depth_async(self, symbol)
 ```
+Returns a `binance.storage.Depth` object.
 
 ##### `/klines`
 ```
 def get_candlesticks(self, symbol, interval, **kwargs)
-```
-```
 async def get_candlesticks_async(self, symbol, interval, **kwargs)
 ```
+Returns a `binance.storage.Candlestick` object.
 
 #### Signed Endpoint Methods
 
@@ -116,48 +116,47 @@ async def get_candlesticks_async(self, symbol, interval, **kwargs)
 ```
 def get_trade_info(self, symbol)
 ```
+Returns a list of `binance.storage.Trade` objects.
 
 ##### `/openOrders`
 ```
 def get_open_orders(self, symbol)
 ```
+Returns a list of `binance.storage.Order` objects.
 
 ##### `/allOrders`
 ```
 def get_all_orders(self, symbol):
 ```
+Returns a list of `binance.storage.Order` objects.
 
 ##### `/order`
 ```
 def get_order_status(self, symbol, order_id)
-```
-```
 def place_market_buy(self, symbol, quantity, **kwargs)
-```
-```
 def place_market_sell(self, symbol, quantity, **kwargs)
-```
-```
 def place_limit_buy(self, symbol, quantity, price, **kwargs)
-```
-```
 def place_limit_sell(self, symbol, quantity, price, **kwargs)
 ```
+Returns the raw API result from `/order`.
 
 ##### `/withdraw`
 ```
 def withdraw(self, asset, amount, address, **kwargs)
 ```
+Returns True if the withdraw is successfully initiated.
 
 ##### `/withdrawHistory.html`
 ```
 def get_withdraw_history(self, asset='', **kwargs)
 ```
+Returns a list of `binance.storage.Withdraw` objects.
 
 ##### `/depositHistory.html`
 ```
 def get_deposit_history(self, asset='', **kwargs)
 ```
+Returns a list of `binance.storage.Deposit` objects.
 
 #### Websocket Endpoint Methods
 
