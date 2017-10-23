@@ -62,8 +62,53 @@ your account in a negative way.
 from binance import BinanceClient
 
 client = BinanceClient(apikey, apisecret)
-client.get_account_info()
+client.ping()
 ```
+
+### Client Methods
+
+Methods with names ending with `_async` are asynchronous `coroutines`
+that perform the same action as their synchronous counterpart.
+(Read more about Python's asynchronous features
+[here](https://docs.python.org/3/library/asyncio.html).)
+
+#### Public Endpoints
+
+##### `/ping`
+
+```
+def ping()
+```
+
+##### `/time`
+```
+def get_server_time()
+```
+
+##### `/ticker`
+```
+def get_ticker(self, symbol='')
+```
+
+##### `/depth`
+```
+def get_depth(self, symbol)
+```
+```
+async def get_depth_async(self, symbol)
+```
+
+##### `/klines`
+```
+def get_candlesticks(self, symbol, interval, **kwargs)
+```
+```
+async def get_candlesticks_async(self, symbol, interval, **kwargs)
+```
+
+#### Signed Endpoints
+
+#### Websocket Endpoints
 
 ### Scripts
 
