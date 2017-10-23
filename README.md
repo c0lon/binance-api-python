@@ -98,10 +98,10 @@ def ping()
 ```
 
 ##### `/time`
+Return the server time in milliseconds as an integer.
 ```
 def get_server_time()
 ```
-Return the server time in milliseconds as an integer.
 
 ##### `/ticker`
 Return `binance.storage.Ticker`.
