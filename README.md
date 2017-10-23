@@ -3,7 +3,7 @@
 Python client for the
 [Binance API](https://www.binance.com/restapipub.html).
 
-Requires python 3.5 or greater.
+Requires python 3.6 or greater.
 
 ## Installation
 
