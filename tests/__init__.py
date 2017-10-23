@@ -8,7 +8,7 @@ from binance import (
 
 TEST_CONFIG_FILE = 'config.yaml'
 
-here = os.path.dirname(os.path.realpath(__file__))
+root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 config_uri = os.path.join(here, TEST_CONFIG_FILE)
 SETTINGS, GLOBAL_CONFIG = configure_app(config_uri=config_uri)
 
