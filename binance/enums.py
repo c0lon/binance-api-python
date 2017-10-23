@@ -23,7 +23,7 @@ class TimeInForce:
     IOC = 'IOC'
 
 
-class KlineIntervals:
+class CandlestickIntervals:
     ONE_MINUTE = '1m'
     THREE_MINUTE = '3m'
     FIVE_MINUTE = '5m'

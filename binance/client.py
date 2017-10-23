@@ -15,10 +15,11 @@ import websockets as ws
 
 from .cache import (
     DepthCache,
-    KlineCache,
+    CandlestickCache,
     )
 from .storage import (
     Account,
+    Candlestick,
     Deposit,
     Depth,
     Order,
@@ -73,7 +74,7 @@ class BinanceClient(GetLoggerMixin):
 
         self._loop = asyncio.get_event_loop()
         self.depth_cache = {}
-        self.klines_cache = {}
+        self.candlestick_cache = {}
 
     def _prepare_request(self, path, verb, params, signed):
         params = params or {}
@@ -235,8 +236,8 @@ class BinanceClient(GetLoggerMixin):
             _get_initial_depth_info()
         ))
 
-    def get_klines(self, symbol, interval, **kwargs):
-        self._logger('get_klines').info(f'{symbol} {interval}')
+    def get_candlesticks(self, symbol, interval, **kwargs):
+        self._logger('get_candlesticks').info(f'{symbol} {interval}')
 
         params = {
             'symbol' : symbol,
@@ -248,10 +249,12 @@ class BinanceClient(GetLoggerMixin):
         if 'end_time' in kwargs:
             params['endTime'] = kwargs['end_time']
 
-        return self._make_request(Endpoints.KLINES, verb='get', params=params)
+        raw_candlesticks = self._make_request(Endpoints.KLINES,
+                verb='get', params=params)
+        return [Candlestick(symbol, cs) for cs in raw_candlesticks]
 
-    async def get_klines_async(self, symbol, interval, **kwargs):
-        logger = self._logger('get_klines_async')
+    async def get_candlesticks_async(self, symbol, interval, **kwargs):
+        logger = self._logger('get_candlesticks_async')
         logger.info(f'{symbol} {interval}')
 
         params = {
@@ -264,11 +267,12 @@ class BinanceClient(GetLoggerMixin):
         if 'end_time' in kwargs:
             params['endTime'] = kwargs['end_time']
 
-        klines = await self._make_request_async(Endpoints.KLINES,
+        raw_candlesticks = await self._make_request_async(Endpoints.KLINES,
                 verb='get', params=params)
-        await self._handle_callback(kwargs.get('callback'), klines)
+        candlesticks = [Candlestick(symbol, cs) for cs in raw_candlesticks]
+        await self._handle_callback(kwargs.get('callback'), candlesticks)
 
-        return klines
+        return candlesticks
         
     async def _handle_callback(self, callback, *values):
         if not callback:
@@ -281,16 +285,16 @@ class BinanceClient(GetLoggerMixin):
         else:
             logger.error(f'callback function {callback.__name__} must be a function or a coroutine, not "{type(callback).__name__}"')
 
-    def watch_klines(self, symbol, interval, **kwargs):
-        self._logger('watch_klines').info(f'{symbol} {interval}')
+    def watch_candlesticks(self, symbol, interval, **kwargs):
+        self._logger('watch_candlesticks').info(f'{symbol} {interval}')
 
-        cache = self.klines_cache.get((symbol, interval))
+        cache = self.candlestick_cache.get((symbol, interval))
         if not cache:
-            cache = KlineCache()
-            self.klines_cache[(symbol, interval)] = cache
+            cache = CandlestickCache()
+            self.candlestick_cache[(symbol, interval)] = cache
 
-        async def _watch_for_kline_events():
-            logger = self._logger('_watch_for_kline_events')
+        async def _watch_for_candlesticks_events():
+            logger = self._logger('_watch_for_candlestick_events')
 
             url = KLINE_WEBSOCKET_URL.format(symbol=symbol.lower())
             url += '_{}'.format(interval)
@@ -305,64 +309,51 @@ class BinanceClient(GetLoggerMixin):
                     except:
                         pass
 
-                    if hasattr(self, 'on_klines_event'):
-                        logger.debug('on_klines_event')
-                        await self.on_klines_event(event_dict)
+                    if hasattr(self, 'on_candlesticks_event'):
+                        logger.debug('on_candlesticks_event')
+                        await self.on_candlesticks_event(event_dict)
 
-        async def _get_initial_kline_info():
-            logger = self._logger('_get_initial_kline_info')
+        async def _get_initial_candlesticks_info():
+            logger = self._logger('_get_initial_candlesticks_info')
 
-            klines = await self.get_klines_async(symbol, interval)
-            cache.set_initial_data(klines)
-            logger.debug('klines ready')
+            candlesticks = await self.get_candlesticks_async(symbol, interval)
+            cache.set_initial_data(candlesticks)
+            logger.debug('candlesticks ready')
 
-            if hasattr(self, 'on_klines_ready'):
-                logger.debug('on_klines_ready')
-                await self.on_klines_ready()
+            if hasattr(self, 'on_candlesticks_ready'):
+                logger.debug('on_candlesticks_ready')
+                await self.on_candlesticks_ready()
 
         self._loop.run_until_complete(asyncio.gather(
-            _watch_for_kline_events(),
-            _get_initial_kline_info()
+            _watch_for_candlesticks_events(),
+            _get_initial_candlesticks_info()
         ))
 
     def get_account_info(self):
         self._logger().info('get_account_info')
-        response = self._make_request(Endpoints.ACCOUNT_INFO, signed=True)
-        return Account(response)
+        raw_account = self._make_request(Endpoints.ACCOUNT_INFO, signed=True)
+        return Account(raw_account)
 
     def get_trade_info(self, symbol):
         self._logger('get_trade_info').info(symbol)
-        response = self._make_request(Endpoints.TRADE_INFO, signed=True,
-                params={'symbol' : symbol})
+        raw_trades = self._make_request(Endpoints.TRADE_INFO,
+                signed=True, params={'symbol' : symbol})
 
-        trade_info = []
-        for trade in response:
-            trade_info.append(Trade(symbol, trade))
-
-        return trade_info
-        
+        return [Trade(symbol, t) for t in raw_trades]
 
     def get_open_orders(self, symbol):
         self._logger('get_open_orders').info(symbol)
-        response = self._make_request(Endpoints.OPEN_ORDERS, signed=True,
-                params={'symbol' : symbol})
+        raw_orders = self._make_request(Endpoints.OPEN_ORDERS,
+                signed=True, params={'symbol' : symbol})
 
-        orders = []
-        for order in response:
-            orders.append(Order(order))
-
-        return orders
+        return [Order(o) for o in raw_orders]
 
     def get_all_orders(self, symbol):
         self._logger('get_all_orders').info(symbol)
-        response = self._make_request(Endpoints.ALL_ORDERS, signed=True,
-                params={'symbol' : symbol})
+        raw_orders = self._make_request(Endpoints.ALL_ORDERS,
+                signed=True, params={'symbol' : symbol})
 
-        orders = []
-        for order in response:
-            orders.append(Order(order))
-
-        return orders
+        return [Order(o) for o in raw_orders]
 
     def get_order_status(self, symbol, order_id):
         self._logger('get_order_status').info(f'{symbol}: {order_id}')
@@ -445,13 +436,13 @@ class BinanceClient(GetLoggerMixin):
             'amount' : amount,
             'address' : address
         }
-        withdraw = self._make_request(Endpoints.WITHDRAW,
+        response = self._make_request(Endpoints.WITHDRAW,
                 verb='post', signed=True, params=params)
-        if not withdraw.get('success'):
-            logger.error('failed request', extra=withdraw)
+        if not response.get('success'):
+            logger.error('failed request', extra=response)
             return
 
-        return withdraw['success']
+        return response['success']
 
     def get_withdraw_history(self, asset=None, **kwargs):
         logger = self._logger('get_withdraw_history')
@@ -461,17 +452,13 @@ class BinanceClient(GetLoggerMixin):
             logger.info(asset)
             params['asset'] = asset
 
-        history = self._make_request(Endpoints.WITHDRAW_HISTORY,
+        response = self._make_request(Endpoints.WITHDRAW_HISTORY,
                 verb='post', signed=True, params=params)
-        if not history.get('success'):
-            logger.error('failed request', extra=history)
+        if not response.get('success'):
+            logger.error('failed request', extra=response)
             return
 
-        withdraws = []
-        for withdraw in history['withdrawList']:
-            withdraws.append(Withdraw(withdraw))
-
-        return withdraws
+        return [Withdraw(withdraw) for withdraw in response['withdrawList']]
 
     def get_deposit_history(self, asset=None, **kwargs):
         logger = self._logger('get_deposit_history')
@@ -481,10 +468,10 @@ class BinanceClient(GetLoggerMixin):
             logger.info(asset)
             params['asset'] = asset
 
-        history = self._make_request(Endpoints.DEPOSIT_HISTORY,
+        response = self._make_request(Endpoints.DEPOSIT_HISTORY,
                 verb='post', signed=True, params=params)
-        if not history.get('success'):
-            logger.error('failed request', extra=history)
+        if not response.get('success'):
+            logger.error('failed request', extra=response)
             return
 
         """ TODO
@@ -494,11 +481,11 @@ class BinanceClient(GetLoggerMixin):
         """
         deposits = []
         if asset:
-            for deposit in history['depositList']:
+            for deposit in response['depositList']:
                 if deposit['asset'] == asset:
                     deposits.append(deposit)
         else:
-            deposits = history['depositList']
+            deposits = response['depositList']
 
         return [Deposit(d) for d in deposits]
 

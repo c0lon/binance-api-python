@@ -10,7 +10,7 @@ import pytest
 import random
 
 from binance.enums import (
-    KlineIntervals,
+    CandlestickIntervals,
     OrderStatus,
     )
 from binance.storage import *
@@ -38,6 +38,10 @@ def assert_ticker(ticker):
     assert isinstance(ticker, Ticker)
     assert isinstance(ticker.symbol, str)
     assert isinstance(ticker.price, float)
+
+    ticker_json = ticker.to_json()
+    assert ticker_json['symbol'] == ticker.symbol
+    assert ticker_json['price'] == ticker.price
 
 
 #@pytest.mark.skip
@@ -75,39 +79,55 @@ def test_get_ticker_invalid():
         assert False
 
 
-def assert_klines(klines):
-    assert isinstance(klines, list)
-    for kline in klines:
-        assert isinstance(kline, list)
+def assert_candlestick(candlestick):
+    assert isinstance(candlestick, Candlestick)
+    assert isinstance(candlestick.price, CandlestickPrice)
+    assert candlestick.price.high >= candlestick.price.low
+
+    assert isinstance(candlestick.open_time, datetime)
+    assert isinstance(candlestick.close_time, datetime)
+    assert candlestick.close_time > candlestick.open_time
+
+    candlestick_json = candlestick.to_json()
+    assert candlestick_json['price'] == candlestick.price.to_json()
+    assert datetime.fromtimestamp(candlestick_json['open_time']) == candlestick.open_time
+    assert datetime.fromtimestamp(candlestick_json['close_time']) == candlestick.close_time
 
 
 #@pytest.mark.skip
-def test_get_klines():
+def test_get_candlesticks():
     symbol = random.choice(SYMBOLS)
-    klines = CLIENT.get_klines(symbol,
-            KlineIntervals.THIRTY_MINUTE)
-    assert_klines(klines)
+    candlesticks = CLIENT.get_candlesticks(symbol,
+            CandlestickIntervals.THIRTY_MINUTE)
+
+    for candlestick in candlesticks:
+        assert_candlestick(candlestick)
 
 
 #@pytest.mark.skip
-def test_get_klines_async():
-    async def klines_callback(klines):
-        with open('klines.json', 'w+') as f:
-            json.dump(klines, f)
+def test_get_candlesticks_async():
+    symbol = random.choice(SYMBOLS)
 
-    async def get_klines():
-        symbol = random.choice(SYMBOLS)
-        klines = await CLIENT.get_klines_async(symbol,
-                KlineIntervals.ONE_HOUR, callback=klines_callback)
-        assert_klines(klines)
+    async def candlesticks_callback(candlesticks):
+        candlesticks_json = [c.to_json() for c in candlesticks]
+        with open('candlesticks.json', 'w+') as f:
+            json.dump(candlesticks_json, f)
+
+    async def get_candlesticks():
+        candlesticks = await CLIENT.get_candlesticks_async(symbol,
+                CandlestickIntervals.ONE_HOUR, callback=candlesticks_callback)
+        for candlestick in candlesticks:
+            assert candlestick.symbol == symbol
+            assert_candlestick(candlestick)
 
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(get_klines())
+    loop.run_until_complete(get_candlesticks())
 
-    with open('klines.json') as f:
-        klines_json = json.load(f)
-    assert_klines(klines_json)
-    os.remove('klines.json')
+    with open('candlesticks.json') as f:
+        candlesticks_json = json.load(f)
+    for candlestick in candlesticks_json:
+        assert candlestick['symbol'] == symbol
+    os.remove('candlesticks.json')
 
 
 def assert_depth(depth):
@@ -123,6 +143,14 @@ def assert_depth(depth):
         assert isinstance(ask, Ask)
         assert isinstance(ask.price, float)
         assert isinstance(ask.quantity, float)
+
+    depth_json = depth.to_json()
+    assert depth_json['symbol'] == depth.symbol
+    assert depth_json['update_id'] == depth.update_id
+    for i, bid_json in enumerate(depth_json['bids']):
+        assert bid_json == depth.bids[i].to_json()
+    for i, ask_json in enumerate(depth_json['asks']):
+        assert ask_json == depth.asks[i].to_json()
 
 
 #@pytest.mark.skip
@@ -162,11 +190,16 @@ def test_get_depth_data_async():
 #@pytest.mark.skip
 def test_get_account_info():
     account = CLIENT.get_account_info()
-
     assert isinstance(account, Account)
+
     for asset, balance in account.balances.items():
         assert isinstance(balance, Balance)
         assert balance.asset == asset
+
+        balance_json = balance.to_json()
+        assert balance_json['asset'] == balance.asset
+        assert balance_json['free'] == balance.free
+        assert balance_json['locked'] == balance.locked
 
 
 #@pytest.mark.skip
@@ -209,6 +242,12 @@ def assert_withdraw(withdraw):
         assert isinstance(withdraw.success_time, datetime)
         assert withdraw.tx_id
 
+    withdraw_json = withdraw.to_json()
+    assert withdraw_json['asset'] == withdraw.asset
+    assert datetime.fromtimestamp(withdraw_json['apply_time']) == withdraw.apply_time
+    if withdraw.success_time:
+        assert datetime.fromtimestamp(withdraw_json['success_time']) == withdraw.success_time
+
 
 #@pytest.mark.skip
 def test_get_withdraw_history():
@@ -231,6 +270,13 @@ def assert_deposit(deposit):
     assert isinstance(deposit, Deposit)
     if deposit.insert_time:
         assert isinstance(deposit.insert_time, datetime)
+
+    deposit_json = deposit.to_json()
+    assert deposit_json['asset'] == deposit.asset
+    assert deposit_json['amount'] == deposit.amount
+    assert deposit_json['status'] == deposit.status
+    if deposit.insert_time:
+        assert datetime.fromtimestamp(deposit_json['insert_time']) == deposit.insert_time
 
 
 #@pytest.mark.skip

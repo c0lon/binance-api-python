@@ -1,16 +1,19 @@
+from copy import deepcopy
 from datetime import datetime
 
 from .enums import (
     OrderSides,
     OrderTypes,
     )
-from .utils import pp
 
 
 class Ticker:
     def __init__(self, raw_ticker):
         self.symbol = raw_ticker['symbol']
         self.price = float(raw_ticker['price'])
+
+    def to_json(self):
+        return deepcopy(self.__dict__)
 
 
 class Account:
@@ -28,12 +31,22 @@ class Account:
         for balance in raw_account['balances']:
             self.balances[balance['asset']] = Balance(balance)
 
+    def to_json(self):
+        j = deepcopy(self.__dict__)
+        for asset in self.balances:
+            j['balances'][asset] = self.banaces[asset].to_json()
+
+        return j
+
 
 class Balance:
     def __init__(self, raw_balance):
         self.asset = raw_balance['asset']
         self.free = float(raw_balance['free'])
         self.locked = float(raw_balance['locked'])
+
+    def to_json(self):
+        return deepcopy(self.__dict__)
 
 
 class Order:
@@ -52,6 +65,9 @@ class Order:
         self.icebergQuantity = float(raw_order['icebergQty']) or None
         self.time = raw_order['time']
 
+    def to_json(self):
+        return deepcopy(self.__dict__)
+
 
 class Trade:
     def __init__(self, symbol, raw_trade):
@@ -65,6 +81,9 @@ class Trade:
         self.isBuyer = raw_trade['isBuyer']
         self.isMaker = raw_trade['isMaker']
         self.isBestMatch = raw_trade['isBestMatch']
+
+    def to_json(self):
+        return deepcopy(self.__dict__)
 
 
 class Depth:
@@ -89,10 +108,7 @@ class Bid:
         self.quantity = float(raw_bid[1])
 
     def to_json(self):
-        return {
-            'price' : self.price,
-            'quantity' : self.quantity
-        }
+        return deepcopy(self.__dict__)
 
 
 class Ask:
@@ -101,10 +117,59 @@ class Ask:
         self.quantity = float(raw_ask[1])
 
     def to_json(self):
-        return {
-            'price' : self.price,
-            'quantity' : self.quantity
-        }
+        return deepcopy(self.__dict__)
+
+
+class Candlestick:
+    def __init__(self, symbol, raw_candlestick):
+        self.symbol = symbol
+
+        self.open_time = datetime.fromtimestamp(raw_candlestick[0] / 1000)
+        self.close_time = datetime.fromtimestamp(raw_candlestick[6] / 1000)
+
+        self.price = CandlestickPrice(*raw_candlestick[1:5])
+        self.volume = float(raw_candlestick[5])
+        self.quote_asset_volume = float(raw_candlestick[7])
+        self.trades = raw_candlestick[8]
+        self.taker_buy_base_asset_volume = raw_candlestick[9]
+        self.taker_buy_quote_asset_volume = raw_candlestick[10]
+
+    @classmethod
+    def from_websocket_event(cls, symbol, event):
+        transformed_event = [
+            event['k']['t'], # open time
+            event['k']['o'], # open price
+            event['k']['h'], # high price
+            event['k']['l'], # low price
+            event['k']['c'], # close price
+            event['k']['v'], # volume
+            event['k']['T'], # close time
+            event['k']['q'], # quote asset volume ?
+            event['k']['n'], # trades
+            event['k']['V'], # taker buy base asset volume ?
+            event['k']['Q']  # taker buy quote asset volume ?
+        ]
+
+        return cls(symbol, transformed_event)
+
+    def to_json(self):
+        j = deepcopy(self.__dict__)
+        j['open_time'] = self.open_time.timestamp()
+        j['close_time'] = self.close_time.timestamp()
+        j['price'] = j['price'].to_json()
+
+        return j
+
+
+class CandlestickPrice:
+    def __init__(self, open_, high, low, close):
+        self.open = open_
+        self.high = high
+        self.low = low
+        self.close = close
+
+    def to_json(self):
+        return deepcopy(self.__dict__)
 
 
 class Deposit:
@@ -116,6 +181,13 @@ class Deposit:
         self.insert_time = raw_deposit.get('insertTime')
         if self.insert_time:
             self.insert_time = datetime.fromtimestamp(self.insert_time / 1000)
+
+    def to_json(self):
+        j = deepcopy(self.__dict__)
+        if self.insert_time:
+            j['insert_time'] = self.insert_time.timestamp()
+
+        return j
 
 
 class Withdraw:
@@ -132,3 +204,11 @@ class Withdraw:
         self.success_time = raw_withdraw.get('successTime')
         if self.success_time:
             self.success_time = datetime.fromtimestamp(self.success_time / 1000)
+
+    def to_json(self):
+        j = deepcopy(self.__dict__)
+        j['apply_time'] = self.apply_time.timestamp()
+        if self.success_time:
+            j['success_time'] = self.success_time.timestamp()
+
+        return j

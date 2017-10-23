@@ -86,11 +86,11 @@ class DepthCache(GetLoggerMixin):
         print()
 
 
-class KlineCache(GetLoggerMixin):
-    __loggername__ = 'KlineCache'
+class CandlestickCache(GetLoggerMixin):
+    __loggername__ = 'CandlestickCache'
 
     def __init__(self):
-        self.klines = []
+        self.candlesticks = []
         self.received_api_response = False
         self.depth = 0
 
@@ -101,51 +101,41 @@ class KlineCache(GetLoggerMixin):
     def _update(self, event):
         logger = self._logger('_update')
 
-        event_kline = self._transform_event(event)
-        latest_kline = self.klines[-1]
-        if event['E'] != latest_kline[0]:
-            self.klines.append((event['E'], event_kline))
-            if len(self.klines) > self.depth:
-                self.klines.pop(0)
+        event_candlestick = Candlestick.from_websocket_event(event)
+        latest_candlestick = self.candlesticks[-1]
 
-    def _transform_event(self, event):
-        return {
-            'open' : event['k']['o'],
-            'high' : event['k']['h'],
-            'low' : event['k']['l'],
-            'close' : event['k']['c'],
-            'volume' : event['k']['v']
-        }
+        # if the event candlestick has the same time window
+        # as the latest candlestick, update the latest candlestick
+        # 
+        # if the event candlestick is of a newer time window
+        # than the latest candlestick, add it to the list
+        # keep candlestick list a certain length
+        if event_candlestick.open_time == latest_candlestick.open_time:
+            self.candlesticks[-1] = event_candlestick
+        elif event_candlestick.open_time > latest_candlestick.open_time:
+            self.candlesticks.append(event_candlestick)
+            if len(self.candlesticks) > self.depth:
+                self.candlesticks.pop(0)
 
-    def set_initial_data(self, klines):
+    def set_initial_data(self, candlesticks):
         self._logger().info('set_initial_data')
 
-        for kline in klines:
-            transformed_kline = self._transform_kline(kline)
-            self.klines.append((kline[0], transformed_kline))
-        self.depth = len(self.klines)
+        self.candlesticks = candlesticks
+        self.depth = len(self.candlesticks)
         self.received_api_response = True
-
-    def _transform_kline(self, kline):
-        return {
-            'open' : kline[1],
-            'high' : kline[2],
-            'low' : kline[3],
-            'close' : kline[4],
-            'volume' : kline[5]
-        }
 
     def pretty_print(self, depth=40):
         if depth:
-            klines = self.klines[-depth:]
+            candlesticks = self.candlesticks[-depth:]
         else:
-            klines = self.klines
+            candlesticks = self.candlesticks
 
-        for kline_timestamp, kline in klines:
-            print(f'timestamp: {kline_timestamp}')
-            print(f'    open: {kline["open"]}')
-            print(f'    high: {kline["high"]}')
-            print(f'    low: {kline["low"]}')
-            print(f'    close: {kline["close"]}')
-            print(f'    volume: {kline["volume"]}')
+        for candlestick in candlesticks:
+            date_string = candlestick.open_time.strftime('%Y-%m-%d %H:%M:%S')
+            print(f'{candlestick.symbol} {date_string}')
+            print(f'      open: {candlestick.price.open}')
+            print(f'      high: {candlestick.price.high}')
+            print(f'       low: {candlestick.price.low}')
+            print(f'     close: {candlestick.price.low}')
+            print(f'    volume: {candlestick.volume}')
             print()

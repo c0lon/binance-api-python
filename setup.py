@@ -30,7 +30,7 @@ data_files = [
 entry_points = {
     'console_scripts': [
         'watchdepth = scripts.watch_depth:main',
-        'watchklines = scripts.watch_klines:main',
+        'watchcandlesticks = scripts.watch_candlesticks:main',
     ]
 }
 
