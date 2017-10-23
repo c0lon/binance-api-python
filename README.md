@@ -1,6 +1,7 @@
 # binance
 
-Python client for the [Binance API](https://www.binance.com/restapipub.html).
+Python client for the
+[Binance API](https://www.binance.com/restapipub.html).
 
 Requires python 3.5 or greater.
 
@@ -26,14 +27,15 @@ To enter a `pdb` shell on a test failure, run
 
 `pytest --pdb`
 
-See the [pytest docs](https://docs.pytest.org/en/latest/contents.html)
+See the
+[pytest docs](https://docs.pytest.org/en/latest/contents.html)
 for more information.
 
 ### Enabling all tests
 
-By default, tests for functions which aim to change the state
-of your account are disabled. To enable them, edit
-[pytest.ini](pytest.ini) by changing
+By default, tests that would change your account in any way,
+such as placing an order or withdrawing funds, are disabled.
+To enable them, edit [pytest.ini](pytest.ini) by changing
 
 ```
 [pytest]
@@ -47,15 +49,15 @@ to
 testpaths = tests
 ```
 
-then follow the instructions in (tests/test_actions.py)[tests/test_actions.py].
+then follow the instructions in
+[tests/test_actions.py](tests/test_actions.py).
 
-### WARNING
+#### WARNING
 
-
-Enabling these tests means that your account balances will be changed
-if the tests are successful. Follow the configuration instructions
-**very carefully.** Failing to do so could result in the tests altering
-your account in a negative way.
+Enabling these tests means that your account balances will be
+changed if the tests are successful. Follow the configuration
+instructions **very carefully.** Failing to do so could result
+in the tests altering your account in a negative way.
 
 ## Usage
 
@@ -186,7 +188,9 @@ Supported Events:
 * `on_candlesticks_ready`
 * `on_candlesticks_event`
 
-See [scripts/watch_depth.py](scripts/watch_depth.py) and [scripts/watch_candlesticks.py](scripts/watch_candlesticks.py) for examples.
+See [scripts/watch_depth.py](scripts/watch_depth.py) and
+[scripts/watch_candlesticks.py](scripts/watch_candlesticks.py)
+for examples.
 
 
 ### Scripts
