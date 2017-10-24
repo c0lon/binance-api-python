@@ -113,7 +113,7 @@ class BinanceClient(GetLoggerMixin):
             return response.json()
 
         logger.error(f'error: {response.reason}', exc_info=True)
-        logger.debug(response_json['error'], extra=response_json)
+        logger.debug(response_json['message'], extra=response_json)
 
         raise response.raise_for_status()
 
@@ -138,7 +138,7 @@ class BinanceClient(GetLoggerMixin):
                 return response_json
 
             logger.error(f'error: {response.reason}', exc_info=True)
-            logger.debug(response_json['error'], extra=response_json)
+            logger.debug(response_json['message'], extra=response_json)
 
             response.raise_for_status()
 
