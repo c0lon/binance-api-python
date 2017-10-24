@@ -105,11 +105,13 @@ class BinanceClient(GetLoggerMixin):
         response = http_function(url, headers=self.headers)
         response_json = response.json()
 
+        # don't overwrite 'msg' in log record
+        if 'msg' in response_json:
+            response_json['message'] = response_json.pop('msg')
+
         if response.ok:
             return response.json()
 
-        # don't overwrite 'msg' in log record
-        response_json['error'] = response_json.pop('msg')
         logger.error(f'error: {response.reason}', exc_info=True)
         logger.debug(response_json['error'], extra=response_json)
 
@@ -125,14 +127,16 @@ class BinanceClient(GetLoggerMixin):
         async with aiohttp.ClientSession() as client:
             http_function = getattr(client, verb)
             response = await http_function(url, headers=self.headers)
-
             response_json = await response.json(content_type=None)
+
+            # don't overwrite 'msg' in log record
+            if 'msg' in response_json:
+                response_json['message'] = response_json.pop('msg')
+
             if response.reason == 'OK':
                 logger.debug('success', extra={'response' : response_json})
                 return response_json
 
-            # don't overwrite 'msg' in log record
-            response_json['error'] = response_json.pop('msg')
             logger.error(f'error: {response.reason}', exc_info=True)
             logger.debug(response_json['error'], extra=response_json)
 
@@ -362,13 +366,17 @@ class BinanceClient(GetLoggerMixin):
 
     def get_order_status(self, symbol, order_id):
         self._logger('get_order_status').info(f'{symbol}: {order_id}')
-        return self._make_request(Endpoints.ORDER, signed=True,
+        raw_order = self._make_request(Endpoints.ORDER, signed=True,
                 params={'symbol' : symbol, 'orderId' : order_id})
+        
+        return Order(raw_order)
 
     def cancel_order(self, symbol, order_id):
         self._logger('cancel_order').info(f'{symbol}: {order_id}')
-        return self._make_request(Endpoints.ORDER, verb='delete', signed=True,
+        raw_order = self._make_request(Endpoints.ORDER, verb='delete', signed=True,
                 params={'symbol' : symbol, 'orderId' : order_id})
+
+        return True
 
     def place_market_buy(self, symbol, quantity, **kwargs):
         self._logger('place_market_buy').info(f'{symbol}: {quantity}')
@@ -380,8 +388,10 @@ class BinanceClient(GetLoggerMixin):
             'quantity' : quantity,
             'recvWindow' : 60000
         }
-        return self._make_request(Endpoints.ORDER,
+        raw_order = self._make_request(Endpoints.ORDER,
                 verb='post', signed=True, params=params)
+
+        return Order(raw_order)
 
     def place_market_sell(self, symbol, quantity, **kwargs):
         self._logger('place_market_sell').info(f'{symbol}: {quantity}')
@@ -393,8 +403,10 @@ class BinanceClient(GetLoggerMixin):
             'quantity' : quantity,
             'recvWindow' : 60000
         }
-        return self._make_request(Endpoints.ORDER,
+        raw_order = self._make_request(Endpoints.ORDER,
                 verb='post', signed=True, params=params)
+
+        return Order(raw_order)
 
     def place_limit_buy(self, symbol, quantity, price, **kwargs):
         self._logger('place_limit_buy').info(f'{symbol}: {quantity} @ {price}')
@@ -411,8 +423,10 @@ class BinanceClient(GetLoggerMixin):
         if 'stop_price' in kwargs:
             params['stopPrice'] = kwargs['stop_price']
 
-        return self._make_request(Endpoints.ORDER,
+        raw_order = self._make_request(Endpoints.ORDER,
                 verb='post', signed=True, params=params)
+
+        return Order(raw_order)
 
     def place_limit_sell(self, symbol, quantity, price, **kwargs):
         self._logger('place_limit_sell').info(f'{symbol}: {quantity} @ {price}')
@@ -429,8 +443,10 @@ class BinanceClient(GetLoggerMixin):
         if 'stop_price' in kwargs:
             params['stopPrice'] = kwargs['stop_price']
 
-        return self._make_request(Endpoints.ORDER,
+        raw_order = self._make_request(Endpoints.ORDER,
                 verb='post', signed=True, params=params)
+
+        return Order(raw_order)
 
     def withdraw(self, asset, amount, address, **kwargs):
         logger = self._logger('withdraw')

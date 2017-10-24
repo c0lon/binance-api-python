@@ -144,13 +144,17 @@ def get_all_orders(self, symbol):
 ```
 
 ##### `/order`
-Return raw API `/order` JSON response.
+Return `binance.storage.Order`
 ```
 def get_order_status(self, symbol, order_id)
 def place_market_buy(self, symbol, quantity, **kwargs)
 def place_market_sell(self, symbol, quantity, **kwargs)
 def place_limit_buy(self, symbol, quantity, price, **kwargs)
 def place_limit_sell(self, symbol, quantity, price, **kwargs)
+```
+Return `True` if order was canceled successfully.
+```
+def cancle_order(self, order_id)
 ```
 
 ##### `/withdraw`

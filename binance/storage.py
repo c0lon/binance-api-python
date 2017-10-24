@@ -61,9 +61,22 @@ class Order:
         self.time_in_force = raw_order['timeInForce']
         self.type = getattr(OrderTypes, raw_order['type'])
         self.side = getattr(OrderSides, raw_order['side'])
-        self.stop_price = float(raw_order['stopPrice']) or None
-        self.icebergQuantity = float(raw_order['icebergQty']) or None
-        self.time = raw_order['time']
+
+        self.stop_price = raw_order.get('stopPrice')
+        if self.stop_price is not None:
+            self.stop_price = float(self.stop_price)
+
+        self.iceberg_quantity = raw_order.get('icebergQty')
+        if self.iceberg_quantity is not None:
+            self.iceberg_quantity = float(self.iceberg_quantity)
+
+        self.time = raw_order.get('time')
+        if self.time is not None:
+            self.time = datetime.fromtimestamp(self.time / 1000)
+
+        self.transact_time = raw_order.get('transactTime')
+        if self.transact_time is not None:
+            self.transact_time = datetime.fromtimestamp(self.transact_time / 1000)
 
     def to_json(self):
         return deepcopy(self.__dict__)

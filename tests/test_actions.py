@@ -22,6 +22,7 @@ import time
 import pytest
 
 from . import CLIENT
+from binance.storage import *
 from binance.enums import OrderStatus
 
 
@@ -75,8 +76,10 @@ def test_place_market_buy():
     symbol = ''
     quantity = 0.0
 
-    response = CLIENT.place_market_buy(symbol, quantity)
-    assert isinstance(response, dict)
+    order = CLIENT.place_market_buy(symbol, quantity)
+    assert isinstance(order, Order)
+    assert order.symbol == symbol
+    assert order.original_quantity == quantity
 
 
 """
@@ -102,8 +105,10 @@ def test_place_market_sell():
     symbol = ''
     quantity = 0.0
 
-    response = CLIENT.place_market_sell(symbol, quantity)
-    assert isinstance(response, dict)
+    order = CLIENT.place_market_sell(symbol, quantity)
+    assert isinstance(order, Order)
+    assert order.symbol == symbol
+    assert order.original_quantity == quantity
 
 
 """
@@ -134,8 +139,11 @@ def test_place_limit_buy():
     quantity = 0.0
     price = 0.0
 
-    response = CLIENT.place_limit_buy(symbol, quantity, price)
-    assert isinstance(response, dict)
+    order = CLIENT.place_limit_buy(symbol, quantity, price)
+    assert isinstance(order, Order)
+    assert order.symbol == symbol
+    assert order.original_quantity == quantity
+    assert order.price == price
 
 
 """
@@ -166,8 +174,11 @@ def test_place_limit_sell():
     quantity = 0.0
     price = 0.0
 
-    response = CLIENT.place_limit_sell(symbol, quantity, price)
-    assert isinstance(response, dict)
+    order = CLIENT.place_limit_sell(symbol, quantity, price)
+    assert isinstance(order, Order)
+    assert order.symbol == symbol
+    assert order.original_quantity == quantity
+    assert order.price == price
 
 
 """
@@ -203,18 +214,16 @@ def test_check_order_status_and_cancel():
     quantity = 0.0
     price = 0.0
 
-    order_response = CLIENT.place_limit_sell(symbol, quantity, price)
-    order_id = order_response['orderId']
+    order = CLIENT.place_limit_sell(symbol, quantity, price)
 
     time.sleep(1)
 
-    order_status_response = CLIENT.get_order_status(symbol, order_id)
-    assert order_status_response['orderId'] == order_id
-    assert order_status_response['status'] == OrderStatus.NEW
+    order_status = CLIENT.get_order_status(symbol, order.id)
+    assert order_status.id == order.id
+    assert order_status.status == OrderStatus.NEW
 
-    order_cancel_response = CLIENT.cancel_order(symbol, order_id)
-    assert order_cancel_response['orderId'] == order_id
+    assert CLIENT.cancel_order(symbol, order.id)
 
-    order_status_response = CLIENT.get_order_status(symbol, order_id)
-    assert order_status_response['orderId'] == order_id
-    assert order_status_response['status'] == OrderStatus.CANCELED
+    order_status = CLIENT.get_order_status(symbol, order.id)
+    assert order_status.id == order.id
+    assert order_status.status == OrderStatus.CANCELED
